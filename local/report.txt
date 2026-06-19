@@ -1,0 +1,83 @@
+Systematics the forward model supports
+
+  The pipeline is map-/field-level (it forward-models HEALPix maps from N-body shells, à la UFalcon/CosmoGrid), not a C(ℓ)/two-point theory code. Systematics are applied at the field
+   level on the shells or at the map "observation" stage. Here is each one, the exact treatment, and how it stacks up against Stage-III/IV state-of-the-art (SOTA).
+
+  1. Intrinsic alignments — ia.py
+
+  - Treatment: TATT (with NLA as the a2=b_ta=0 special case). Standard amplitude normalization C1·ρ_crit = 0.0134, growth-scaled A1 ∝ 1/D, A2 ∝ 1/D², redshift power-laws η1, η2,
+  pivot z0=0.62 (DES Y3). IA amplitudes evaluated at the n(z)-weighted effective redshift per shell.
+  - Vs SOTA: TATT is the DES Y3 baseline (Blazek+19), so the model choice is current. But the field-level implementation is an approximation, not the full TATT expansion. Standard
+  TATT is γ^I = A₁ s_ij + A₁b_TA(δ·s_ij) + A₂(s_ik s_kj)^TF — a linear term, a density-weighted linear term, and a quadratic tidal contraction (torquing). Here it's collapsed to (A₁ 
+  + A₂·b_TA·(|s|−⟨|s|⟩))·s_ij (model.py:188, ia.py:66): the torquing term is replaced by an |s|-magnitude weighting of the linear tensor rather than the proper second-order s_ik 
+  s_kj, and there's no separate δ·s_ij density term. This is a heuristic effective-TATT, fine for generating plausible mocks but not field-level-exact.
+  - Also note the tidal tensor is 2D (spin-2 on each spherical shell via √[(ℓ−1)(ℓ+2)/ℓ(ℓ+1)], tidal.py:63), an approximation to the true 3D tidal field — standard for map-based
+  forward models but a known simplification.
+
+  2. Galaxy bias — bias.py
+
+  - Treatment: Field-level perturbative bias to 2nd order: δ_g = b₁δ + b₂(δ²−⟨δ²⟩) + b_s(s²−⟨s²⟩), per-bin coefficients, mean-subtracted (renormalized).
+  - Vs SOTA: This is the standard second-order Lagrangian/Eulerian basis. Missing third-order nonlocal b₃nl, higher-derivative b∇²δ, and stochastic/counterterm pieces that full
+  EFT-of-LSS full-shape analyses carry. For a simulation-based 3×2pt mock this 2nd-order subset is a reasonable and common choice, applied correctly.
+
+  3. Source clustering — probes.py / model.py
+
+  - Treatment: Linear bias coupling sources to the density field, producing a projected source overdensity that modulates the shape-noise sampling (density-correlated noise).
+  - Vs SOTA: Including source clustering at all is ahead of many baselines — it's a known higher-order effect frequently neglected. Treated linearly here, which is adequate.
+
+  4. Photo-z uncertainty — nz.py
+
+  - Treatment: Mean-shift only: n_shifted(z) = n(z−Δz), renormalized. DES Y3 Gaussian priors on Δz per bin in the loader.
+  - Vs SOTA: This is the DES Y3 source baseline (per-bin mean shifts). This is the weakest link relative to current SOTA, which increasingly uses width/stretch parameters and full
+  n(z)-realization marginalization (KiDS SOM realizations, HSC stretch, Hyperrank). Only a rigid translation is supported — no width, skewness, or sampled n(z) ensembles.
+
+  5. Shear calibration — observation.py
+
+  - Treatment: Multiplicative bias m per bin, γ_obs = (1+m)·γ. DES Y3 Gaussian priors.
+  - Vs SOTA: Standard first-order multiplicative treatment. No additive bias (c₁,c₂), PSF leakage, or property-dependent m. The metacalibration response R is handled separately
+  inside the empirical shape noise (noise.py:128–133), which is the right place for it.
+
+  6. Shape noise — noise.py
+
+  - Treatment: Three interchangeable models: empirical (sample real catalogue ellipticities, random-rotate to kill signal, inverse-variance weight, divide by mean response R),
+  analytic Gaussian N(0, σ_e²/N), and none.
+  - Vs SOTA: The empirical rotate-and-resample approach is exactly what simulation-based-inference pipelines (DES/CosmoGrid) use — this is SOTA for realistic, footprint-correct shape
+   noise.
+
+  7. Galaxy shot noise — noise.py
+
+  - Treatment: Poisson, N ~ Poisson(n̄(1+δ_g)·mask).
+  - Vs SOTA: Standard baseline. No sub-/super-Poisson stochasticity, but Poisson is the conventional default.
+
+  8. CMB-lensing reconstruction — noise.py / observation.py
+
+  - Treatment: Multipole filter F_L, Gaussian reconstruction-noise realization from N_L^{κκ}, then mask. ACT DR6 curves provided.
+  - Vs SOTA: Reasonable first-order treatment. Missing the N1 bias, foreground/extragalactic biases, mean-field, and realization-dependent normalization that full CMB-lensing
+  pipelines model — it's Gaussian noise + filter only.
+
+  9. Baryonic feedback — baryons/baryonforge.py
+
+  - Treatment: BaryonForge baryonification (Schneider+19 model) displacing particles in the count shells, halos matched to shells by redshift. Full Schneider+19 fiducial parameter
+  set.
+  - Vs SOTA: Map-level baryonification is among the most advanced ways to inject baryons into mocks (used by CosmoGrid). This is genuinely SOTA-competitive, and stronger than the
+  P(k)-suppression approach (HMcode/BCemu) used in two-point pipelines.
+
+  Cosmology/projection backbone — cosmology.py / projections.py
+
+  - pyccl with boltzmann_camb + halofit, supports w0/wa and massive neutrinos. Nonlinear structure comes from the N-body shells, not P(k). Projection kernels are the UFalcon
+  continuous-kernel integrals — the established map-based projection method. High-z gap filled by GLASS cross-correlated lognormal shells (Limber, compute_gaussian_spectra).
+
+  Notable gaps vs SOTA
+
+  These standard systematics are absent (confirmed by grep):
+
+  - Lens magnification bias — a required DES Y3 3×2pt systematic; not modeled.
+  - Redshift-space distortions — explicitly off (has_rsd=False, lognormal.py:35); the clustering kernel is real-space.
+  - Additive shear / PSF systematics (c₁,c₂, PSF leakage) — none.
+  - n(z) width/shape uncertainty — only mean shifts.
+  - Full TATT field expansion — uses an effective |s|-weighted form instead.
+  - CMB-lensing higher-order biases (N1, foregrounds).
+
+  Bottom line: the model choices are firmly Stage-III (DES Y3) class and the map-level treatments — empirical shape noise, BaryonForge baryons, source clustering, UFalcon projection
+  — are at or near SOTA. The main departures from SOTA are (1) photo-z handled as mean-shift only, (2) TATT implemented in an approximate effective form rather than the exact
+  field-level expansion, and (3) magnification and RSD not modeled at all.
