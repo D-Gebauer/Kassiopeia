@@ -16,6 +16,8 @@ tests/reference_data/
 *.npy
 *.dat
 benchmarks/output.txt
+local/
+validation/
 
 # Editor / OS noise
 .vscode/
