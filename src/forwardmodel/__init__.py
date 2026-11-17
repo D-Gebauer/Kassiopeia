@@ -50,6 +50,7 @@ from .model import ForwardModel
 from .lognormal import lognormal_shells
 from .noise import (
     ShapeNoise, NoShapeNoise, GaussianShapeNoise, EmpiricalShapeNoise,
+    CatalogShapeNoise, DESShapeNoise, KiDSShapeNoise,
     poisson_counts, apply_cmb_noise,
 )
 from .observation import (
@@ -79,6 +80,7 @@ __all__ = [
     "lognormal_shells",
     # noise
     "ShapeNoise", "NoShapeNoise", "GaussianShapeNoise", "EmpiricalShapeNoise",
+    "CatalogShapeNoise", "DESShapeNoise", "KiDSShapeNoise",
     "poisson_counts", "apply_cmb_noise",
     # observation
     "WeakLensingObservation", "GalaxyClusteringObservation",

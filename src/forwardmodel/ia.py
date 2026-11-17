@@ -25,8 +25,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# C1 * rho_crit in M_sun h^2 / Mpc^3 (standard IA normalisation).
+# C1 * rho_crit,0 (dimensionless; C1 in h^-2 M_sun^-1 Mpc^3 times rho_crit,0 in h^2 M_sun Mpc^-3).
+# Default: the CCL value. Other codes round differently -- pass ``c1_rhocrit`` to match them.
 C1_RHOCRIT = 0.0134
+
+#: CosmoSIS standard library (``la_model``, also used by KiDS / CosmoPipe):
+#: C1 = 5e-14 h^-2 M_sun^-1 Mpc^3 times rho_crit,0 computed from G, M_sun and Mpc in SI
+#: (``compute_c1_baseline``), = 0.013873... At equal ``a1`` it is 3.5% above :data:`C1_RHOCRIT`.
+C1_RHOCRIT_COSMOSIS = (5e-14 / 1.9891e30 * 3.0857e22**3
+                       * 3.0 * (100.0 * 1000.0 / 3.0857e22)**2
+                       / (8.0 * 3.141592653589793 * 6.67384e-11))
 
 
 @dataclass
@@ -45,6 +53,9 @@ class TATT:
         Tidal-alignment density weighting for the quadratic term.
     z_pivot : float
         Pivot redshift ``z0`` in the evolution factor (default 0.62, DES Y3).
+    c1_rhocrit : float
+        Normalisation ``C1 rho_crit,0`` (default :data:`C1_RHOCRIT` = 0.0134, CCL).
+        Use :data:`C1_RHOCRIT_COSMOSIS` to match a CosmoSIS ``la_model`` theory at equal ``a1``.
     """
 
     a1: float = 0.0
@@ -53,6 +64,7 @@ class TATT:
     eta2: float = 0.0
     b_ta: float = 0.0
     z_pivot: float = 0.62
+    c1_rhocrit: float = C1_RHOCRIT
 
     def amplitudes(self, cosmo, z):
         """Return ``(A1, A2)`` at redshift ``z`` for the given cosmology."""
@@ -60,8 +72,8 @@ class TATT:
         D = cosmo.growth_factor(z)
         Om = cosmo.Omega_m
         evo = (1.0 + z) / (1.0 + self.z_pivot)
-        A1 = -self.a1 * C1_RHOCRIT * Om / D * evo**self.eta1
-        A2 = 5.0 * self.a2 * C1_RHOCRIT * Om / D**2 * evo**self.eta2
+        A1 = -self.a1 * self.c1_rhocrit * Om / D * evo**self.eta1
+        A2 = 5.0 * self.a2 * self.c1_rhocrit * Om / D**2 * evo**self.eta2
         return A1, A2
 
     def field(self, s1, s2, delta, cosmo, z):
@@ -90,14 +102,17 @@ class NLA(TATT):
         Redshift evolution exponent.
     z_pivot : float
         Pivot redshift (default 0.62).
+    c1_rhocrit : float
+        Normalisation ``C1 rho_crit,0`` (see :class:`TATT`).
     """
 
-    def __init__(self, a1=0.0, eta1=0.0, z_pivot=0.62):
+    def __init__(self, a1=0.0, eta1=0.0, z_pivot=0.62, c1_rhocrit=C1_RHOCRIT):
         super().__init__(a1=a1, a2=0.0, eta1=eta1, eta2=0.0, b_ta=0.0,
-                         z_pivot=z_pivot)
+                         z_pivot=z_pivot, c1_rhocrit=c1_rhocrit)
 
 
-def tatt_amplitudes(cosmo, z, a1, a2, eta1, eta2, z_pivot=0.62):
+def tatt_amplitudes(cosmo, z, a1, a2, eta1, eta2, z_pivot=0.62,
+                    c1_rhocrit=C1_RHOCRIT):
     """Standalone TATT amplitude functions ``(A1, A2)`` (low-level API)."""
-    return TATT(a1=a1, a2=a2, eta1=eta1, eta2=eta2, z_pivot=z_pivot).amplitudes(
-        cosmo, z)
+    return TATT(a1=a1, a2=a2, eta1=eta1, eta2=eta2, z_pivot=z_pivot,
+                c1_rhocrit=c1_rhocrit).amplitudes(cosmo, z)

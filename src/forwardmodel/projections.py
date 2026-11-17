@@ -301,4 +301,7 @@ def effective_redshift(nz_bins, z_lower, z_upper, n_sub=21):
             denom = np.trapezoid(nz_sub, z_sub)
             z_eff[i, b] = (np.trapezoid(z_sub * nz_sub, z_sub) / denom
                            if denom > 0 else z_mid)
-    return z_eff
+    # For n(z) >= 0 the weighted mean lies inside the shell. Spline n(z) (NumberDensity.from_spline) can
+    # undershoot slightly below zero in the tails, where the overlap is ~0 and the ratio is ill-conditioned
+    # (it then leaves the shell, even z < 0): clip to the shell bounds.
+    return np.clip(z_eff, np.asarray(z_lower, float)[:, None], np.asarray(z_upper, float)[:, None])

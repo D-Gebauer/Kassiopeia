@@ -105,7 +105,8 @@ class ForwardModel:
         return cls(cosmo, shells, lmax=lmax)
 
     def project(self, weak_lensing=None, galaxy_clustering=None,
-                cmb_lensing=None, isw=None, z_max_tidal=3.0, verbose=False):
+                cmb_lensing=None, isw=None, z_max_tidal=3.0, verbose=False,
+                linear_ia_fast=True):
         """Project the requested probes in a single pass over the shells.
 
         Parameters
@@ -119,6 +120,16 @@ class ForwardModel:
             Shells above this redshift skip the nonlinear tidal/IA terms.
         verbose : bool
             Print per-shell progress.
+        linear_ia_fast : bool
+            For a purely linear IA model (NLA: ``a2 = b_ta = 0``) without
+            source clustering, accumulate the scalar IA field
+            ``kappa_IA = sum_i A1(z_i) w_i delta_i`` like the convergence and
+            turn it into shear once per bin with :func:`kappa_to_gamma`. The
+            tidal operator is linear with the same harmonic factor and sign as
+            Kaiser-Squires, so this equals the per-shell tidal path (one spin
+            transform per bin instead of one per shell). The scalar field is
+            returned as ``WeakLensingMaps.ia_kappa``. ``False`` forces the
+            per-shell tidal path.
 
         Returns
         -------
@@ -205,6 +216,20 @@ class ForwardModel:
         gc_quad = (galaxy_clustering is not None
                    and galaxy_clustering.bias.needs_quadratic_density)
         wl_ia = weak_lensing is not None and weak_lensing.has_ia
+        ia_scalar = (wl_ia and linear_ia_fast
+                     and weak_lensing.ia.a2 == 0.0 and weak_lensing.ia.b_ta == 0.0
+                     and not weak_lensing.has_source_clustering)
+        if ia_scalar:
+            acc_kappa_ia = np.zeros((n_src, npix))
+            ia_scalar_w = np.zeros((shells.n_shells, n_src))
+            for i in range(shells.n_shells):
+                if 0.5 * (z_lo[i] + z_hi[i]) > z_max_tidal:
+                    continue
+                for b in range(n_src):
+                    if src_overlap_w[i, b] != 0.0:
+                        A1, _ = weak_lensing.ia.amplitudes(cosmo, src_zeff[i, b])
+                        ia_scalar_w[i, b] = A1 * src_overlap_w[i, b]
+            wl_ia = False            # no per-shell tidal field needed
 
         # -- single pass over shells (redshift-ordered, for source clustering) --
         for i in np.argsort(shells.z_mid):
@@ -265,6 +290,12 @@ class ForwardModel:
                     for b in range(n_lens):
                         if gc_mag_w[i, b] != 0.0:
                             acc_kappa_mag[b] += delta * gc_mag_w[i, b]
+
+            # Linear IA as a scalar field (transformed once per bin at the end)
+            if ia_scalar:
+                for b in range(n_src):
+                    if ia_scalar_w[i, b] != 0.0:
+                        acc_kappa_ia[b] += delta * ia_scalar_w[i, b]
 
             # Nonlinear terms (need tidal field), capped in redshift
             if z_mid > z_max_tidal or not (gc_tidal or gc_quad or wl_ia):
@@ -333,10 +364,16 @@ class ForwardModel:
             gamma2 = np.zeros_like(acc_kappa)
             for b in range(n_src):
                 gamma1[b], gamma2[b] = kappa_to_gamma(acc_kappa[b], lmax=self.lmax)
+            ia_kappa = None
+            if ia_scalar:
+                ia_kappa = acc_kappa_ia
+                for b in range(n_src):
+                    ia_kappa[b] -= ia_kappa[b].mean()
+                    acc_ia1[b], acc_ia2[b] = kappa_to_gamma(ia_kappa[b], lmax=self.lmax)
             result.weak_lensing = WeakLensingMaps(
                 kappa=acc_kappa, gamma1=gamma1, gamma2=gamma2,
                 ia_gamma1=acc_ia1, ia_gamma2=acc_ia2,
-                source_overdensity=acc_src_delta,
+                source_overdensity=acc_src_delta, ia_kappa=ia_kappa,
             )
 
         if galaxy_clustering is not None:

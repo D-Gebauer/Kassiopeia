@@ -57,7 +57,8 @@ maps = fm.ForwardModel(cosmo, shells).project(
 rng = np.random.default_rng(0)
 wl_obs = fm.WeakLensingObservation(
     mask, nbar=1.5,
-    shape_noise=fm.EmpiricalShapeNoise(catalog),   # or GaussianShapeNoise / NoShapeNoise
+    shape_noise=fm.DESShapeNoise(metacal, selection_response=R_S),  # or KiDSShapeNoise,
+                                                   # EmpiricalShapeNoise, GaussianShapeNoise, NoShapeNoise
     shear_calibration=[-0.006, -0.020, -0.024, -0.037],
     reduced_shear=True,                            # g = γ/(1−κ)
     additive_shear=(c1, c2),                       # c-term, scalar or per-bin
@@ -114,7 +115,10 @@ See [`examples/`](examples/) for runnable scripts (no data required for 01–03)
 **Observational realism**
 - Galaxy clustering: Poisson shot noise, `N ~ Poisson(n̄(1+δ_g)·mask)`.
 - Weak lensing: source clustering + optional reduced shear `g = γ/(1−κ)` +
-  shape noise (empirical catalogue sampling, analytic Gaussian, or none) +
+  shape noise (real survey catalogue with randomly rotated galaxies at their true
+  positions — `DESShapeNoise` divides by the metacal response `<R_γ>+R_S`,
+  `KiDSShapeNoise` normalises by the lensfit weights — or bootstrapped catalogue
+  shapes, analytic Gaussian, or none) +
   multiplicative shear calibration + additive shear (c-term) + PSF leakage +
   Kaiser-Squires reconstruction.
 - CMB lensing: multipole filter + reconstruction-noise realisation + mask.
@@ -144,7 +148,10 @@ number — which is what makes the projection dataset-agnostic.
 - `forwardmodel.loaders.cosmogrid` — CosmoGrid shells (`load_shells`) and
   cosmology (`load_cosmology`).
 - `forwardmodel.loaders.des_y3` — DES Y3 n(z), source/lens catalogues, footprint
-  mask, and the DES Y3 systematic priors (`draw_systematics`).
+  mask, the raw metacal catalogue + selection response from the Y3 mastercat
+  (`load_metacal_catalog`), and the DES Y3 systematic priors (`draw_systematics`).
+- `forwardmodel.loaders.kids` — KiDS lensfit shape catalogues split into Z_B bins
+  (`load_shape_catalog`).
 - `forwardmodel.loaders.act_dr6` — ACT DR6 CMB-lensing noise curve, filter, mask.
 - `forwardmodel.baryons` — BaryonForge baryonification of count shells
   (`baryonify`), matching halos to shells by redshift.

@@ -25,6 +25,25 @@ validation/
 *.swp
 .DS_Store
 
-# Claude files
+# AI assistant / coding-agent files
 CLAUDE.md
+CLAUDE.local.md
 .claude/
+AGENTS.md
+GEMINI.md
+.mcp.json
+.cursor/
+.cursorrules
+.cursorignore
+.aider*
+.codex/
+.continue/
+.windsurf/
+.windsurfrules
+.clinerules
+.roo/
+.github/copilot-instructions.md
+
+# Local backups
+*.bak
+*.bak-*

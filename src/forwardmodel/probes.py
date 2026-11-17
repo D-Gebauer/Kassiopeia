@@ -150,6 +150,9 @@ class WeakLensingMaps:
         Intrinsic-alignment shear (zeros if no IA model).
     source_overdensity : ndarray
         Projected source galaxy overdensity (zeros if source clustering off).
+    ia_kappa : ndarray or None
+        Scalar IA field ``sum_i A1 w_i delta_i`` whose Kaiser-Squires shear is
+        ``ia_gamma1/2`` (only for linear IA on the fast path, else ``None``).
     """
 
     kappa: np.ndarray
@@ -158,6 +161,7 @@ class WeakLensingMaps:
     ia_gamma1: np.ndarray
     ia_gamma2: np.ndarray
     source_overdensity: np.ndarray
+    ia_kappa: Optional[np.ndarray] = None
 
     @property
     def n_bins(self):

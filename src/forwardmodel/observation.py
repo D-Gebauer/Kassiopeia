@@ -93,9 +93,11 @@ class WeakLensingObservation:
     nbar : float or array_like
         Mean source galaxies per pixel, scalar or per bin.
     shape_noise : ShapeNoise
-        Noise model. Defaults to :class:`~forwardmodel.noise.NoShapeNoise`;
-        :class:`~forwardmodel.noise.EmpiricalShapeNoise` is the recommended
-        realistic choice.
+        Noise model. Defaults to :class:`~forwardmodel.noise.NoShapeNoise`.
+        For survey mocks use :class:`~forwardmodel.noise.DESShapeNoise` or
+        :class:`~forwardmodel.noise.KiDSShapeNoise` (real catalogue, rotated
+        galaxies at their true positions; ``nbar`` and the source overdensity
+        are then not used for the noise).
     shear_calibration : float or array_like, optional
         Multiplicative bias ``m``; observed signal is scaled by ``1 + m``.
     reduced_shear : bool

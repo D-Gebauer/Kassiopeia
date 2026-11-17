@@ -34,19 +34,22 @@ dependencies = [
 
 [project.optional-dependencies]
 lognormal = ["glass>=2024.1"]
-loaders = ["h5py>=3.8", "pyyaml>=6.0"]
+loaders = ["h5py>=3.8", "pyyaml>=6.0", "astropy>=5.0"]
 baryons = ["BaryonForge>=1.0"]
+rotation = ["ducc0>=0.30"]   # fast exact alm rotations (forwardmodel.rotation); healpy fallback
 test = ["pytest>=7.0", "pytest-cov>=4.0"]
 all = [
     "glass>=2024.1",
     "h5py>=3.8",
     "pyyaml>=6.0",
+    "astropy>=5.0",
     "BaryonForge>=1.0",
+    "ducc0>=0.30",
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/forwardmodel"
-Issues = "https://github.com/your-org/forwardmodel/issues"
+Homepage = "https://github.com/D-Gebauer/ForwardModel"
+Issues = "https://github.com/D-Gebauer/ForwardModel/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

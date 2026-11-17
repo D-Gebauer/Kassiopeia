@@ -7,6 +7,8 @@ The HDF5 layouts assumed here match the products the pipeline was built on:
 * ``y3_source_calibrated.h5`` — groups ``bin_<i>`` with ``e1, e2`` (and
   optionally ``R``, ``weight``).
 * ``y3_lens_maglim.h5`` — groups ``bin_<i>`` with ``ra, dec`` (and ``weight``).
+* The official ``Y3_mastercat_*.h5`` for :func:`load_metacal_catalog` (raw
+  metacal shapes + responses for :class:`~forwardmodel.noise.DESShapeNoise`).
 
 Pass ``n_source_bins`` / ``n_lens_bins`` to match your file.
 """
@@ -65,6 +67,110 @@ def load_source_catalog(path, n_bins=4):
                  else np.ones_like(e1))
             catalog[i] = (e1, e2, R, w)
     return catalog
+
+
+#: Metacal shear applied to the sheared images: +-0.01, so Delta gamma = 0.02.
+METACAL_DGAMMA = 0.02
+
+
+def load_metacal_catalog(path, n_bins=4, selection_response=True,
+                         dgamma=METACAL_DGAMMA, chunk_rows=20_000_000):
+    """Load the DES Y3 metacal source catalogue for :class:`DESShapeNoise`.
+
+    Reads the official Y3 *mastercat* (``Y3_mastercat_*.h5``; its
+    ``catalog/metacal`` group is an external link to ``y3v02-mcal-*.h5``,
+    which must sit in the same directory). Galaxies of tomographic bin ``i``
+    are the rows ``index/select_bin{i+1}`` of ``catalog/metacal/unsheared``.
+
+    Ellipticities are returned **raw** (not divided by the response); the
+    response is applied by :class:`~forwardmodel.noise.DESShapeNoise`.
+
+    Parameters
+    ----------
+    path : str
+        Mastercat file.
+    n_bins : int
+    selection_response : bool
+        Also measure the selection response per bin,
+        ``R_S = (R_S,11 + R_S,22) / 2`` with
+        ``R_S,jj = (<e_j>_{S_j+} - <e_j>_{S_j-}) / dgamma``: the
+        weighted mean of the unsheared ``e_j`` over the selections made on
+        the ``+``/``-`` sheared catalogues (``index/select_{j}p_bin{i}``),
+        weighted with the sheared catalogues' weights.
+    dgamma : float
+        Metacal shear difference between the ``p`` and ``m`` images.
+    chunk_rows : int
+        Rows read per HDF5 slice (contiguous slices are much faster than
+        fancy-indexing ~10^8 scattered rows).
+
+    Returns
+    -------
+    catalogs : dict
+        Bin index (0-based) -> dict with ``ra, dec, e1, e2, w, R11, R22``.
+    R_S : ndarray
+        ``(n_bins,)`` selection responses (zeros if not requested). Pass as
+        ``DESShapeNoise(catalogs, selection_response=R_S)``.
+
+    Notes
+    -----
+    This reads ~10 float64 columns of a 4x10^8-row table; on el9 that takes
+    a while from Lustre. Cache the result, e.g.
+    ``np.savez(f"metacal_bin{i}.npz", **catalogs[i])`` — the noise classes
+    accept the loaded ``.npz`` files directly.
+    """
+    import h5py
+
+    cols = {"ra": "ra", "dec": "dec", "e1": "e_1", "e2": "e_2",
+            "w": "weight", "R11": "R11", "R22": "R22"}
+    with h5py.File(path, "r") as f:
+        mcal = f["catalog/metacal"]
+        unsheared = mcal["unsheared"]
+        n_rows = unsheared["e_1"].shape[0]
+
+        def rows(name):
+            # Sorted row indices (int32 suffices for < 2^31 rows; halves memory).
+            idx = np.sort(f[f"index/{name}"][:])
+            return idx.astype(np.int32) if n_rows < 2**31 else idx
+
+        def local(idx, lo, hi):
+            a, b = np.searchsorted(idx, (lo, hi))
+            return idx[a:b] - lo
+
+        bin_rows = [rows(f"select_bin{i + 1}") for i in range(n_bins)]
+        parts = {i: {k: [] for k in cols} for i in range(n_bins)}
+
+        # R_S sums: sel_sums[(i, sh)] = [sum w_sh e_j, sum w_sh] over S_{sh}.
+        sheared = ["1p", "1m", "2p", "2m"] if selection_response else []
+        sel_rows = {(i, sh): rows(f"select_{sh}_bin{i + 1}")
+                    for i in range(n_bins) for sh in sheared}
+        sel_sums = {key: np.zeros(2) for key in sel_rows}
+
+        lo_all = min(int(r[0]) for r in [*bin_rows, *sel_rows.values()] if len(r))
+        hi_all = max(int(r[-1]) for r in [*bin_rows, *sel_rows.values()] if len(r)) + 1
+        for lo in range(lo_all, hi_all, chunk_rows):
+            hi = min(lo + chunk_rows, hi_all)
+            data = {k: unsheared[v][lo:hi] for k, v in cols.items()}
+            for i, idx in enumerate(bin_rows):
+                ii = local(idx, lo, hi)
+                for k in cols:
+                    parts[i][k].append(data[k][ii])
+            for sh in sheared:
+                w_sh = mcal[f"sheared_{sh}"]["weight"][lo:hi]
+                e = data["e1" if sh[0] == "1" else "e2"]
+                for i in range(n_bins):
+                    ii = local(sel_rows[(i, sh)], lo, hi)
+                    sel_sums[(i, sh)] += (np.sum(w_sh[ii] * e[ii]), np.sum(w_sh[ii]))
+
+    catalogs = {i: {k: np.concatenate(v) for k, v in parts[i].items()}
+                for i in range(n_bins)}
+    R_S = np.zeros(n_bins)
+    if selection_response:
+        mean = {key: s[0] / s[1] for key, s in sel_sums.items()}
+        for i in range(n_bins):
+            rs11 = (mean[(i, "1p")] - mean[(i, "1m")]) / dgamma
+            rs22 = (mean[(i, "2p")] - mean[(i, "2m")]) / dgamma
+            R_S[i] = 0.5 * (rs11 + rs22)
+    return catalogs, R_S
 
 
 def load_lens_positions(path, n_bins=6):

@@ -39,6 +39,37 @@ class NumberDensity:
         self.z = z
         self.nz = _normalize(z, nz) if normalize else nz
 
+    @classmethod
+    def from_spline(cls, z, nz, n_fine=12001, k=3, clip_negative=False):
+        """Cubic-spline n(z) through the sample points, tabulated on a fine grid.
+
+        The default constructor interpolates the given points linearly. Codes that spline the
+        n(z) instead (CosmoSIS ``project_2d`` uses ``InterpolatedUnivariateSpline``, k = 3) see a
+        slightly different distribution; this reproduces theirs so that theory and maps use the
+        same n(z). Every downstream use (weights, shifts, stretches) interpolates the fine grid
+        linearly, which is then the spline to ~1e-6.
+
+        Parameters
+        ----------
+        z, nz : array_like
+            Sample points (e.g. histogram mid-points with n(0) = 0 prepended, as CosmoSIS's
+            ``load_nz_fits`` does).
+        n_fine : int
+            Points of the uniform fine grid over ``[z[0], z[-1]]``.
+        k : int
+            Spline degree (``InterpolatedUnivariateSpline``).
+        clip_negative : bool
+            Set spline undershoots below zero to zero (CosmoSIS keeps them).
+        """
+        from scipy.interpolate import InterpolatedUnivariateSpline
+
+        z = np.asarray(z, dtype=float)
+        zf = np.linspace(z[0], z[-1], n_fine)
+        nzf = InterpolatedUnivariateSpline(z, np.asarray(nz, dtype=float), k=k)(zf)
+        if clip_negative:
+            nzf = np.clip(nzf, 0.0, None)
+        return cls(zf, nzf)
+
     def shifted(self, dz):
         """Return a copy shifted by photo-z bias ``dz``.
 
