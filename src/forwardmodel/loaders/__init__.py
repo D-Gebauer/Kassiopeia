@@ -3,7 +3,7 @@
 These helpers read the specific data products the package was originally built
 around, returning the generic ``forwardmodel`` objects (``ShellStack``,
 ``NumberDensity`` lists, masks, catalogues). They require the ``loaders`` extra
-(``pip install forwardmodel[loaders]``): ``h5py`` and ``pyyaml``.
+(``pip install forwardmodel[loaders]``): ``h5py``, ``pyyaml`` and ``astropy``.
 
 Submodules:
 

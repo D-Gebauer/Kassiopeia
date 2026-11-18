@@ -7,12 +7,16 @@ CosmoGrid's shell ids).
 
 BaryonForge 1.x targets ``numpy<2`` and ``pyccl<3.1``; the compatibility shims
 below restore the handful of APIs it relies on, so it runs against the modern
-stack this package otherwise uses.
+stack this package otherwise uses. Because of those pins it has to be installed
+without its dependencies: ``pip install --no-deps BaryonForge`` (the ``baryons``
+extra provides the remaining ones).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import functools
+import inspect
 import numpy as np
 import pyccl as ccl
 from scipy.interpolate import CubicSpline
@@ -23,6 +27,35 @@ if not hasattr(np, "trapz"):
 from pyccl.halos.concentration import Concentration as _Concentration
 if not hasattr(_Concentration, "get_concentration"):
     _Concentration.get_concentration = lambda self, cosmo, M, a: self(cosmo, M, a)
+
+
+def _accept_mdef(cls):
+    """Let a pyccl >= 3 concentration class take BaryonForge's ``mdef=`` (renamed ``mass_def``)."""
+    init = cls.__dict__.get("__init__")
+    if init is None or getattr(init, "_accepts_mdef", False):
+        return
+    names = inspect.signature(init).parameters
+    if "mdef" in names or "mass_def" not in names:
+        return
+
+    @functools.wraps(init)
+    def wrapped(self, *args, mdef=None, **kwargs):
+        if mdef is not None:
+            kwargs.setdefault("mass_def", mdef)
+        return init(self, *args, **kwargs)
+
+    wrapped._accepts_mdef = True
+    cls.__init__ = wrapped
+
+
+def _with_subclasses(cls):
+    yield cls
+    for sub in cls.__subclasses__():
+        yield from _with_subclasses(sub)
+
+
+for _cls in list(_with_subclasses(_Concentration)):
+    _accept_mdef(_cls)
 _orig_corr3d = ccl.correlation_3d
 def _corr3d_compat(cosmo, a_or_r=None, r_or_a=None, **kw):
     if "r" in kw or "a" in kw:

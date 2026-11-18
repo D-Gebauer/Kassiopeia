@@ -33,18 +33,24 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-lognormal = ["glass>=2024.1"]
+lognormal = ["glass>=2024.1", "camb"]   # camb: default transfer function of the matter spectra
 loaders = ["h5py>=3.8", "pyyaml>=6.0", "astropy>=5.0"]
-baryons = ["BaryonForge>=1.0"]
+# BaryonForge itself is installed separately (pip install --no-deps BaryonForge): its
+# release pins pyccl==2.8.0 and numpy 1.x, which conflict with this package. These are
+# its remaining runtime dependencies.
+baryons = ["tqdm", "numba", "joblib"]
 rotation = ["ducc0>=0.30"]   # fast exact alm rotations (forwardmodel.rotation); healpy fallback
 test = ["pytest>=7.0", "pytest-cov>=4.0"]
 all = [
     "glass>=2024.1",
+    "camb",
     "h5py>=3.8",
     "pyyaml>=6.0",
     "astropy>=5.0",
-    "BaryonForge>=1.0",
     "ducc0>=0.30",
+    "tqdm",
+    "numba",
+    "joblib",
 ]
 
 [project.urls]

@@ -27,8 +27,10 @@ The high-level objects above cover the common case; every building block
 ...) is also importable directly for custom pipelines.
 
 Optional features live behind extras: ``forwardmodel[lognormal]`` (GLASS shell
-extension), ``forwardmodel[loaders]`` (CosmoGrid/DES Y3/ACT DR6 readers), and
-``forwardmodel[baryons]`` (BaryonForge baryonification).
+extension), ``forwardmodel[loaders]`` (CosmoGrid/DES Y3/KiDS/ACT DR6 readers),
+``forwardmodel[rotation]`` (ducc0 for fast rotations), and
+``forwardmodel[baryons]`` (dependencies of BaryonForge baryonification; see
+:mod:`forwardmodel.baryons`).
 """
 
 from .cosmology import Cosmology
