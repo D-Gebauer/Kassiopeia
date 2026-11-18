@@ -5,7 +5,7 @@ maps from full-sky HEALPix density shells (N-body or lognormal).
 
 Modelled effects:
 
-- intrinsic alignments (`NLA`, `TATT`)
+- intrinsic alignments (`NLA`)
 - linear and quadratic galaxy bias, magnification bias
 - source clustering and reduced shear
 - photo-z shift and stretch
@@ -52,7 +52,7 @@ shells = fm.ShellStack.from_counts(counts, z_lower, z_upper)   # (n_shells, npix
 
 source_bins = fm.make_bins(z, [nz0, nz1, nz2, nz3])
 wl  = fm.WeakLensing(nz=source_bins,
-                     ia=fm.TATT(a1=0.7, a2=-0.5, b_ta=0.5),
+                     ia=fm.NLA(a1=0.7),
                      source_clustering_bias=1.0)
 gc  = fm.GalaxyClustering(nz=lens_bins,
                           bias=fm.QuadraticBias(b1=[1.4, 1.6, 1.8], b2=0.2, bs=-0.1),
@@ -312,8 +312,6 @@ Set `DATA` in 04 and 05 to your data directory.
 ## Limitations
 
 - Born approximation, no ray tracing.
-- The tidal field is computed per shell in 2D, so the TATT quadratic terms are
-  not the full 3D ones.
 - The harmonic-space path supports linear IA only.
 
 ## Tests

@@ -1,5 +1,11 @@
 """Intrinsic-alignment models: NLA and TATT.
 
+.. warning::
+   The quadratic terms do not agree with theory: neither the tidal-torquing
+   term (``a2``, TATT) nor the density-weighting term (``b_ta``; delta-NLA is
+   ``b_ta != 0`` with ``a2 = 0``). Do not use them for analyses. Only the
+   linear term, :class:`NLA`, is unaffected.
+
 Both produce a spin-2 IA field from the tidal field ``s_ij`` and the density
 ``delta``. The TATT amplitudes follow the standard convention::
 
@@ -41,16 +47,22 @@ C1_RHOCRIT_COSMOSIS = (5e-14 / 1.9891e30 * 3.0857e22**3
 class TATT:
     """Tidal Alignment + Tidal Torquing intrinsic-alignment model.
 
+    .. warning::
+       With ``a2 != 0`` (TATT) or ``b_ta != 0`` (delta-NLA) the IA field does
+       not agree with theory. Do not use these terms for analyses; use
+       :class:`NLA` (``a2 = b_ta = 0``), which is unaffected.
+
     Parameters
     ----------
     a1 : float
         Linear (NLA) alignment amplitude.
     a2 : float
-        Quadratic (torquing) amplitude.
+        Quadratic (torquing) amplitude. Does not agree with theory, see the warning.
     eta1, eta2 : float
         Redshift power-law evolution exponents for ``a1`` and ``a2``.
     b_ta : float
-        Tidal-alignment density weighting for the quadratic term.
+        Tidal-alignment density weighting for the quadratic term (delta-NLA
+        for ``a2 = 0``). Does not agree with theory, see the warning.
     z_pivot : float
         Pivot redshift ``z0`` in the evolution factor (default 0.62, DES Y3).
     c1_rhocrit : float
@@ -82,6 +94,11 @@ class TATT:
         Exact field-level TATT in the 2D tidal field:
         ``I_ij = A1 s_ij + (b_TA A1 + A2) delta s_ij`` (see module docstring).
         ``delta`` is the shell overdensity; pass zeros for the pure-NLA limit.
+
+        .. warning::
+           The quadratic ``delta s_ij`` term (``a2 != 0`` or ``b_ta != 0``:
+           TATT, delta-NLA) does not agree with theory. Only the linear
+           ``A1 s_ij`` term does.
         """
         A1, A2 = self.amplitudes(cosmo, z)
         quad = self.b_ta * A1 + A2
@@ -113,6 +130,11 @@ class NLA(TATT):
 
 def tatt_amplitudes(cosmo, z, a1, a2, eta1, eta2, z_pivot=0.62,
                     c1_rhocrit=C1_RHOCRIT):
-    """Standalone TATT amplitude functions ``(A1, A2)`` (low-level API)."""
+    """Standalone TATT amplitude functions ``(A1, A2)`` (low-level API).
+
+    .. warning::
+       The quadratic IA terms that ``A2`` (and ``b_ta * A1``, delta-NLA)
+       multiply do not agree with theory, see :class:`TATT`.
+    """
     return TATT(a1=a1, a2=a2, eta1=eta1, eta2=eta2, z_pivot=z_pivot,
                 c1_rhocrit=c1_rhocrit).amplitudes(cosmo, z)
