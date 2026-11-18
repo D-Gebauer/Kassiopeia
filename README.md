@@ -40,7 +40,7 @@ Optional features are extras:
 | Extra | Adds | Needed for |
 |---|---|---|
 | `lognormal` | `glass`, `camb` | lognormal shells (`from_lognormal`, `extend_lognormal`, `fill_with_lognormal`) |
-| `loaders` | `h5py`, `pyyaml`, `astropy` | `forwardmodel.loaders` (CosmoGrid, DES Y3, KiDS) |
+| `loaders` | `h5py`, `pyyaml`, `astropy` | `forwardmodel.loaders` (CosmoGrid, DES Y3, KiDS; the Gower Street loader needs none of them) |
 | `rotation` | `ducc0` | faster `forwardmodel.rotation` (healpy is the fallback) |
 | `baryons` | `tqdm`, `numba`, `joblib` | dependencies of BaryonForge, which is installed separately (see [Baryonification](#baryonification)) |
 | `test` | `pytest`, `pytest-cov` | the test suite |
@@ -335,7 +335,7 @@ Three conventions differ between codes; the defaults follow CCL.
   `NumberDensity.from_spline(z, nz)` reproduces codes that spline the n(z)
   (CosmoSIS `project_2d`).
 - **Neutrino mass.** `Cosmology(m_nu=...)` is the summed mass. CosmoGrid stores
-  the mass per species, which `loaders.cosmogrid.cosmology_from_params`
+  the mass per species, which `loaders.CosmoGridV1.cosmology_from_params`
   converts (`n_massive_nu=3`) and checks against the file's `Om`.
 
 ## Dataset loaders
@@ -343,10 +343,10 @@ Three conventions differ between codes; the defaults follow CCL.
 `forwardmodel.loaders` reads the data products the package was built around and
 returns the generic objects (`ShellStack`, `NumberDensity` lists, masks,
 catalogues). It needs the `loaders` extra. The data are not included, and all
-paths are passed explicitly; DES Y3 catalogues and CosmoGrid are obtained from
-the respective collaborations and releases.
+paths are passed explicitly; DES Y3 catalogues, CosmoGrid and the Gower Street
+simulations are obtained from the respective collaborations and releases.
 
-**`loaders.cosmogrid`**
+**`loaders.CosmoGridV1`**: CosmoGridV1 (`.npz` shells, `params.yml`).
 
 | Function | Reads |
 |---|---|
@@ -354,22 +354,54 @@ the respective collaborations and releases.
 | `cosmology_from_params(p)` | same from a parameter dict or a v1.1 `sim_params` row |
 | `load_shells(path.npz)` | `.npz` with `shells` `(n_shells, npix)` and `shell_info` (`lower_z`, `upper_z`) → `ShellStack` |
 | `load_halo_catalog(path.npz)` | halo lightcone structured array (for baryonification) |
-| `load_v11_shells(path.h5, baryonified=False, metainfo=..., shell_info=...)` | CosmoGrid v1.1 `baryonified_shells_v11.h5` → `ShellStack` |
-| `load_v11_params(path.h5)` | the `sim_params` row of a v1.1 file |
+
+**`loaders.CosmoGridV1_1`**: CosmoGrid v1.1 (`baryonified_shells_v11.h5`).
+
+| Function | Reads |
+|---|---|
+| `load_shells(path.h5, baryonified=False, metainfo=..., shell_info=...)` | `baryonified_shells_v11.h5` → `ShellStack` |
+| `load_params(path.h5)` | the `sim_params` row of a v1.1 file |
+| `cosmology_from_params(p)` | `sim_params` row → `Cosmology` (the same function as in `CosmoGridV1`) |
 
 The v1.1 shell files do not contain the shell redshift bounds, so
-`load_v11_shells` needs either the v1.1 metainfo file or the bounds themselves:
+`load_shells` needs either the v1.1 metainfo file or the bounds themselves:
 
 ```python
-from forwardmodel.loaders import cosmogrid
+from forwardmodel.loaders import CosmoGridV1_1
 
-shells, p = cosmogrid.load_v11_shells(
+shells, p = CosmoGridV1_1.load_shells(
     "<cosmogrid>/<cosmology>/run_0000/baryonified_shells_v11.h5",
     baryonified=True,                                    # DMO + baryonification increments
     metainfo="<cosmogrid>/CosmoGridV11_bary_Fluri+2022_metainfo.h5",
     return_params=True)
-cosmo = cosmogrid.cosmology_from_params(p)
+cosmo = CosmoGridV1_1.cosmology_from_params(p)
 ```
+
+**`loaders.GowerStreet`**: the [Gower Street simulations](http://www.star.ucl.ac.uk/GowerStreetSims/)
+(Jeffrey et al. 2024). Needs no extra.
+
+| Function | Reads |
+|---|---|
+| `load_shells(sim_dir, z_max=None, nside=None)` | `run.XXXXX.lightcone.npy` + `z_values.txt` of one unpacked `simNNNNN/` → `ShellStack` (counts, ordered by redshift) |
+| `load_shell_info(sim_dir)` | `z_values.txt` → structured array `step, lower_z, upper_z, lower_com, upper_com` |
+| `load_control(sim_dir)` | `control.par` → dict (`dBoxSize` in Mpc/h, `nGrid`, ...) |
+| `load_params(sheet.csv, serial)` | one row of the parameter sheet (sheet 1 of the release workbook, exported as CSV) → dict |
+| `load_cosmology(sheet.csv, serial)`, `cosmology_from_params(p)` | that row → `Cosmology` |
+
+```python
+from forwardmodel.loaders import GowerStreet
+
+cosmo = GowerStreet.load_cosmology("<gower>/sheet1.csv", 400)
+shells = GowerStreet.load_shells("<gower>/sim00400", z_max=3.0, nside=1024)
+```
+
+The ~100 shells of a simulation take about 10 GB at the native NSIDE 2048, so
+`z_max` (load only the shells starting below it) and `nside` (downgrade while
+loading by summing counts) keep the stack small. Incomplete shells
+(`run.XXXXX.incomplete.npy`) are skipped. `m_nu` in the sheet is the summed
+mass. `Omega_m` includes the massive neutrinos for simulations 193 to 791; for
+the 192 verification runs it is CDM + baryons and the returned cosmology has no
+massive neutrinos (see `cosmology_from_params`).
 
 **`loaders.des_y3`**
 
@@ -403,9 +435,9 @@ matched to shells by redshift and each count shell is displaced.
 
 ```python
 from forwardmodel.baryons import baryonify, HaloCatalog, DEFAULT_BARYON_PARAMS
-from forwardmodel.loaders import cosmogrid
+from forwardmodel.loaders import CosmoGridV1
 
-h = cosmogrid.load_halo_catalog("<path>/halos.npz")
+h = CosmoGridV1.load_halo_catalog("<path>/halos.npz")
 halos = HaloCatalog.from_cartesian(h["x"], h["y"], h["z"], h["Mvir"], cosmo)
 baryonified = baryonify(shells, halos, cosmo, params=DEFAULT_BARYON_PARAMS)
 ```
@@ -468,7 +500,7 @@ pip install -e ".[all,test]"
 pytest
 ```
 
-The 71 tests use small synthetic inputs, need no external data and take under
+The 74 tests use small synthetic inputs, need no external data and take under
 a minute. Tests that need `glass`, `h5py`, `ducc0` or BaryonForge are skipped
 when the package is missing.
 

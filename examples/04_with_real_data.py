@@ -8,15 +8,15 @@ paths below to point at your data, then run. Requires the loaders extra:
 
 import numpy as np
 import forwardmodel as fm
-from forwardmodel.loaders import cosmogrid, des_y3, act_dr6
+from forwardmodel.loaders import CosmoGridV1, des_y3, act_dr6
 
 DATA = "/path/to/data"  # <-- edit me
 
 rng = np.random.default_rng(42)
 
 # --- Cosmology and shells from CosmoGrid ---
-cosmo = cosmogrid.load_cosmology(f"{DATA}/cosmogrid/params.yml")
-shells = cosmogrid.load_shells(f"{DATA}/cosmogrid/baryonified_shells.npz")
+cosmo = CosmoGridV1.load_cosmology(f"{DATA}/cosmogrid/params.yml")
+shells = CosmoGridV1.load_shells(f"{DATA}/cosmogrid/baryonified_shells.npz")
 nside = shells.nside
 
 # Extend past the N-body cap to cover the CMB-lensing kernel.

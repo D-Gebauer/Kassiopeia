@@ -113,8 +113,8 @@ def load_metacal_catalog(path, n_bins=4, selection_response=True,
 
     Notes
     -----
-    This reads ~10 float64 columns of a 4x10^8-row table; on el9 that takes
-    a while from Lustre. Cache the result, e.g.
+    This reads ~10 float64 columns of a 4x10^8-row table, which takes a while
+    (especially from a network file system). Cache the result, e.g.
     ``np.savez(f"metacal_bin{i}.npz", **catalogs[i])`` — the noise classes
     accept the loaded ``.npz`` files directly.
     """

@@ -4,7 +4,7 @@ import pytest
 
 import forwardmodel as fm
 from forwardmodel.ia import C1_RHOCRIT, C1_RHOCRIT_COSMOSIS
-from forwardmodel.loaders import cosmogrid as cg
+from forwardmodel.loaders import CosmoGridV1 as cg, CosmoGridV1_1
 
 CG_FID = {"As": 3.0589e-9, "H0": 67.36, "O_cdm": 0.209277442262, "O_nu": 0.0014225577379999993,
           "Ob": 0.0493, "Om": 0.26, "m_nu": 0.02, "ns": 0.9649, "s8": 0.84, "w0": -1.0, "wa": 0.0}
@@ -29,6 +29,7 @@ def test_cosmogrid_mnu_is_per_species():
         cg.cosmology_from_params(CG_FID, n_massive_nu=1)       # old behaviour: sum = 0.02 eV
     row = np.array([tuple(CG_FID.values())], dtype=[(k, "f8") for k in CG_FID])[0]
     assert cg.cosmology_from_params(row).Omega_m == pytest.approx(cosmo.Omega_m)
+    assert CosmoGridV1_1.cosmology_from_params is cg.cosmology_from_params
 
 
 def test_nz_from_spline():
