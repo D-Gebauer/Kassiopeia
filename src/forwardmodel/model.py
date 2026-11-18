@@ -115,7 +115,8 @@ class ForwardModel:
         galaxy_clustering : GalaxyClustering, optional
         cmb_lensing : CMBLensing, optional
         isw : ISW, optional
-            Late-time ISW temperature anisotropy.
+            Late-time ISW temperature anisotropy, from the shells below
+            ``isw.z_max``.
         z_max_tidal : float
             Shells above this redshift skip the nonlinear tidal/IA terms.
         verbose : bool
@@ -186,6 +187,8 @@ class ForwardModel:
         isw_w = None
         if isw is not None:
             isw_w = proj.isw_weights(cosmo, z_lo, z_hi)
+            if isw.z_max is not None:
+                isw_w[shells.z_mid > isw.z_max] = 0.0
 
         # -- allocate accumulators -----------------------------------------
         if weak_lensing is not None:

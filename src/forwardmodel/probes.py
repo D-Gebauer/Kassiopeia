@@ -124,12 +124,19 @@ class ISW:
     ``f = 1`` exactly and the kernel vanishes there — only shells where dark
     energy makes the potentials decay contribute.
 
-    The shell stack only needs to cover the redshift range where ``(1-f)`` is
-    appreciable (typically ``z < ~2``); contributions above that are tiny.
-    Early ISW (around recombination) is *not* modelled here.
+    Early ISW (around recombination) is *not* modelled.
+
+    Parameters
+    ----------
+    z_max : float or None
+        Shells with a mid-redshift above this are left out (default 3). The
+        late-time signal comes from lower redshift. Shells at much higher
+        redshift, as used for CMB lensing, have ``f < 1`` again because of
+        radiation and large volume factors, and would add spurious power.
+        ``None`` uses all shells.
     """
 
-    pass
+    z_max: Optional[float] = 3.0
 
 
 # ---------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 # forwardmodel
 
-Forward-models weak lensing, galaxy clustering, CMB lensing and late-time ISW
-maps from full-sky HEALPix density shells (N-body or lognormal).
+Forward-models weak lensing maps from full-sky HEALPix density shells (N-body
+or lognormal). Galaxy clustering, CMB lensing and late-time ISW maps are also
+available but less tested, see [Validation](#validation).
 
 Modelled effects:
 
@@ -88,7 +89,7 @@ model = fm.ForwardModel.from_lognormal(cosmo, nside=512, z_max=3.0, dz=0.1)
 ```
 
 `project()` skips the tidal terms (quadratic bias, IA) for shells above
-`z_max_tidal` (default 3).
+`z_max_tidal` (default 3), and the ISW uses only shells below `ISW(z_max=3)`.
 
 ## Conventions
 
@@ -309,10 +310,27 @@ pip install --no-deps BaryonForge
 
 Set `DATA` in 04 and 05 to your data directory.
 
+## Validation
+
+| Probe | Checked | Not checked |
+|---|---|---|
+| Weak lensing | convergence C_ℓ against CCL: within 1 % on lognormal shells (06), within a few per cent for ℓ < 150 on N-body shells (05); NLA E-modes at 0.76 to 0.94 of CCL (05) | |
+| Galaxy clustering | C_ℓ with linear bias against CCL: within 1 % on lognormal shells (06) | quadratic bias, magnification, N-body shells, cross-spectra with lensing |
+| CMB lensing | C_ℓ against CCL: within 1 % on lognormal shells (06) | N-body shells extended with lognormal shells, cross-spectra, noise and filtering against data |
+| ISW | C_ℓ against CCL: 0.99 ± 0.01 for ℓ = 4 to 40 on lognormal shells (06) | N-body shells, cross-spectra with other probes, ℓ > 40 |
+
+The numbers are mean ratios over ℓ = 60 to 400 (ISW: 4 to 40) of the
+auto-spectrum of one tomographic bin, from the example notebooks 05 and 06.
+Treat the ISW as experimental.
+
 ## Limitations
 
 - Born approximation, no ray tracing.
+- The lensing kernel is evaluated per shell: use shells with Δz ≲ 0.05. With
+  Δz = 0.15 the convergence power of low-redshift sources is tens of per cent
+  too high.
 - The harmonic-space path supports linear IA only.
+- Late-time ISW only.
 
 ## Tests
 

@@ -201,6 +201,23 @@ def test_isw_basic(cosmo, count_shells):
     np.testing.assert_allclose(theta.mean(), 0, atol=1e-10)
 
 
+def test_isw_ignores_shells_above_z_max(cosmo, nside, rng):
+    npix = hp.nside2npix(nside)
+    z_edges = np.array([0.0, 0.5, 1.0, 2.0, 3.0, 50.0, 400.0])
+    delta = 0.1 * rng.standard_normal((len(z_edges) - 1, npix))
+    full = fm.ShellStack.from_overdensity(delta, z_edges[:-1], z_edges[1:])
+    low = fm.ShellStack.from_overdensity(delta[:4], z_edges[:4], z_edges[1:5])
+
+    def theta(shells, **kw):
+        return fm.ForwardModel(cosmo, shells).project(isw=fm.ISW(**kw)).isw.theta
+
+    np.testing.assert_allclose(theta(full), theta(low), rtol=1e-10, atol=1e-18)
+    np.testing.assert_allclose(theta(full, z_max=1.0), theta(low, z_max=1.0), rtol=1e-10, atol=1e-18)
+    # without the limit the high-redshift shells dominate
+    assert theta(full, z_max=None).std() > 3 * theta(low).std()
+    assert theta(low, z_max=1.0).std() < theta(low).std()
+
+
 def test_isw_suppressed_in_einstein_de_sitter(cosmo, count_shells):
     # Einstein-de Sitter (Omega_m = 1) has f = 1, so the kernel (1 - f)
     # vanishes analytically. CCL's numerical growth-rate solver leaves a small
