@@ -11,6 +11,8 @@ Submodules:
 * :mod:`forwardmodel.loaders.CosmoGridV1_1` — CosmoGrid v1.1 shells (DMO and baryonified).
 * :mod:`forwardmodel.loaders.GowerStreet` — Gower Street simulation shells and cosmology
   (needs no extra).
+* :mod:`forwardmodel.loaders.Flamingo` — FLAMINGO lightcone mass maps and cosmology
+  (local files or the release's ``hdfstream`` server).
 * :mod:`forwardmodel.loaders.des_y3` — DES Y3 n(z), source/lens catalogues, mask.
 * :mod:`forwardmodel.loaders.kids` — KiDS lensfit shape catalogues (``astropy``).
 * :mod:`forwardmodel.loaders.act_dr6` — ACT DR6 CMB-lensing products.

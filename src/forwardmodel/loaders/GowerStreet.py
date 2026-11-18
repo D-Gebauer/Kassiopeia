@@ -19,11 +19,11 @@ import csv
 import re
 from pathlib import Path
 
-import healpy as hp
 import numpy as np
 
 from ..cosmology import Cosmology
 from ..shells import ShellStack
+from ._maps import sum_downgrade
 
 _LIGHTCONE = re.compile(r"run\.(\d+)\.lightcone\.npy$")
 _SHELL_INFO_DTYPE = [("step", "i4"), ("lower_z", "f8"), ("upper_z", "f8"),
@@ -86,18 +86,6 @@ def load_control(sim_dir):
     return out
 
 
-def _sum_downgrade(counts, nside):
-    """Downgrade a RING count map by summing the pixels of each coarse pixel."""
-    nside_in = hp.npix2nside(counts.size)
-    if nside == nside_in:
-        return counts
-    if nside > nside_in:
-        raise ValueError(f"nside={nside} is above the map resolution {nside_in}")
-    dtype = np.uint32 if np.issubdtype(counts.dtype, np.integer) else np.float64
-    nest = hp.reorder(counts, r2n=True).reshape(hp.nside2npix(nside), -1)
-    return hp.reorder(nest.sum(axis=1, dtype=dtype), n2r=True)
-
-
 def load_shells(sim_dir, z_max=None, nside=None, normalization="map_mean", cosmo=None):
     """Load the lightcone shells of one simulation into a :class:`ShellStack` (count form).
 
@@ -142,7 +130,7 @@ def load_shells(sim_dir, z_max=None, nside=None, normalization="map_mean", cosmo
     for s, step in enumerate(info["step"]):
         m = np.load(files[int(step)])
         if nside is not None:
-            m = _sum_downgrade(m, nside)
+            m = sum_downgrade(m, nside)
         if counts is None:
             counts = np.empty((len(info), m.size), m.dtype)
         counts[s] = m

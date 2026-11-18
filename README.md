@@ -40,7 +40,7 @@ Optional features are extras:
 | Extra | Adds | Needed for |
 |---|---|---|
 | `lognormal` | `glass`, `camb` | lognormal shells (`from_lognormal`, `extend_lognormal`, `fill_with_lognormal`) |
-| `loaders` | `h5py`, `pyyaml`, `astropy` | `forwardmodel.loaders` (CosmoGrid, DES Y3, KiDS; the Gower Street loader needs none of them) |
+| `loaders` | `h5py`, `pyyaml`, `astropy` | `forwardmodel.loaders` (CosmoGrid, DES Y3, KiDS; the Gower Street loader needs none of them, FLAMINGO only `h5py` for local files) |
 | `rotation` | `ducc0` | faster `forwardmodel.rotation` (healpy is the fallback) |
 | `baryons` | `tqdm`, `numba`, `joblib` | dependencies of BaryonForge, which is installed separately (see [Baryonification](#baryonification)) |
 | `test` | `pytest`, `pytest-cov` | the test suite |
@@ -343,8 +343,8 @@ Three conventions differ between codes; the defaults follow CCL.
 `forwardmodel.loaders` reads the data products the package was built around and
 returns the generic objects (`ShellStack`, `NumberDensity` lists, masks,
 catalogues). It needs the `loaders` extra. The data are not included, and all
-paths are passed explicitly; DES Y3 catalogues, CosmoGrid and the Gower Street
-simulations are obtained from the respective collaborations and releases.
+paths are passed explicitly; DES Y3 catalogues, CosmoGrid, the Gower Street
+and FLAMINGO simulations are obtained from the respective collaborations and releases.
 
 **`loaders.CosmoGridV1`**: CosmoGridV1 (`.npz` shells, `params.yml`).
 
@@ -402,6 +402,45 @@ loading by summing counts) keep the stack small. Incomplete shells
 mass. `Omega_m` includes the massive neutrinos for simulations 193 to 791; for
 the 192 verification runs it is CDM + baryons and the returned cosmology has no
 massive neutrinos (see `cosmology_from_params`).
+
+**`loaders.Flamingo`**: the [FLAMINGO](https://flamingo.strw.leidenuniv.nl/)
+hydrodynamical and dark-matter-only simulations, from the
+[public data release](https://dataweb.cosma.dur.ac.uk:8443/flamingo/introduction.html).
+
+| Function | Reads |
+|---|---|
+| `load_shells(maps_dir, redshifts, lightcone=0, field="TotalMass", z_max=None, nside=None, remote=None, cache_dir=None)` | the HEALPix mass maps of one observer → `ShellStack` |
+| `load_shell_redshifts(path.txt)` | a run's `shell_redshifts*.txt` → structured array `lower_z, upper_z` |
+| `load_cosmology(params.yml)`, `load_params`, `cosmology_from_params` | the `Cosmology` block of a run's SWIFT parameter file → `Cosmology` |
+
+Each shell file of the release holds every map and is an index into ~17 GB of
+data, so single maps are best read from the server with the release's
+[`hdfstream`](https://pypi.org/project/hdfstream/) client (`pip install hdfstream`)
+instead of downloading files. Only the two small text files of the run are
+needed locally (download them from the release's file browser):
+
+```python
+import hdfstream
+from forwardmodel.loaders import Flamingo
+
+run = "FLAMINGO/L1_m9/L1_m9"                         # box / run, see the release docs
+cosmo = Flamingo.load_cosmology("flamingo_L1000N1800_hydro_fiducial.yml")
+shells = Flamingo.load_shells(
+    f"{run}/healpix_maps/nside_4096", "shell_redshifts_z3.txt",
+    z_max=2.0, nside=1024,
+    remote=hdfstream.open("cosma", "/"), cache_dir="flamingo_cache/L1_m9")
+shells = shells.fill_with_lognormal(cosmo, z_max=4.0)   # the 1 Gpc boxes stop at z = 3
+```
+
+A map at the reduced NSIDE 4096 is 1.6 GB and takes minutes to transfer, so use
+`cache_dir`: each downgraded map is stored there once and reused. Without
+`remote`, `maps_dir` is a local copy of the same directory tree (needs `h5py`).
+`TotalMass` contains gas, dark matter, stars, black holes and neutrinos, so a
+hydro run already includes baryonic feedback and no baryonification is applied;
+`field` selects any other mass map (e.g. `DarkMatterMass`). The parameter files
+do not contain the power-spectrum normalisation: `sigma8` and `n_s` come from
+the table `Flamingo.COSMOLOGIES` (the seven non-decaying cosmologies of the
+suite). The decaying-dark-matter runs are not supported.
 
 **`loaders.des_y3`**
 
@@ -500,7 +539,7 @@ pip install -e ".[all,test]"
 pytest
 ```
 
-The 74 tests use small synthetic inputs, need no external data and take under
+The 77 tests use small synthetic inputs, need no external data and take under
 a minute. Tests that need `glass`, `h5py`, `ducc0` or BaryonForge are skipped
 when the package is missing.
 
