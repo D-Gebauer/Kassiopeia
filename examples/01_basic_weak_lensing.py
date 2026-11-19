@@ -8,7 +8,7 @@ shells (or a loader, see example 04) to use real data.
 
 import numpy as np
 import healpy as hp
-import forwardmodel as fm
+import kassiopeia as fm
 
 rng = np.random.default_rng(0)
 nside = 64

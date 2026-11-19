@@ -102,7 +102,7 @@ def load_shells(sim_dir, z_max=None, nside=None, normalization="map_mean", cosmo
     normalization : {"map_mean", "box"}
         Count-to-overdensity normalization, see :class:`ShellStack`. ``"box"`` needs
         ``cosmo`` and reads the box size and particle number from ``control.par``.
-    cosmo : forwardmodel.Cosmology, optional
+    cosmo : kassiopeia.Cosmology, optional
         For ``normalization="box"``.
 
     Returns
@@ -177,7 +177,7 @@ N_VERIFICATION_RUNS = 192
 
 
 def cosmology_from_params(p, **overrides):
-    """Build a :class:`~forwardmodel.Cosmology` from a row of the parameter sheet.
+    """Build a :class:`~kassiopeia.Cosmology` from a row of the parameter sheet.
 
     ``p`` is the dict of :func:`load_params` (``Omega_m, Omega_b, little_h, sigma_8, n_s, w,
     m_nu, Serial Number``). ``m_nu`` is the summed neutrino mass in eV. The meaning of
@@ -213,7 +213,7 @@ def cosmology_from_params(p, **overrides):
 
 
 def load_cosmology(csv_path, serial, **overrides):
-    """:class:`~forwardmodel.Cosmology` of simulation ``serial`` from the parameter sheet CSV.
+    """:class:`~kassiopeia.Cosmology` of simulation ``serial`` from the parameter sheet CSV.
 
     See :func:`load_params` and :func:`cosmology_from_params`.
     """

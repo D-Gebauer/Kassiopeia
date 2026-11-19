@@ -1,4 +1,7 @@
-# forwardmodel
+# Kassiopeia
+
+**K**appa **A**nd **S**hear from **S**hells, **I**ncluding **O**bservational and
+**P**hotometric **E**ffects and **I**ntrinsic **A**lignments
 
 Forward-models weak lensing maps from full-sky HEALPix density shells (N-body
 or lognormal). Galaxy clustering, CMB lensing and late-time ISW maps are also
@@ -19,19 +22,25 @@ Parameters of every class and function are documented in the docstrings.
 
 ## Install
 
-Python ≥ 3.10. The package is not on PyPI:
+Python ≥ 3.10.
 
 ```bash
-git clone https://github.com/D-Gebauer/ForwardModel.git
-cd ForwardModel
-pip install -e .                 # core: numpy, scipy, healpy, pyccl
-pip install -e ".[all,test]"     # everything
+pip install kassiopeia           # core: numpy, scipy, healpy, pyccl
+pip install "kassiopeia[all]"    # with all optional features
+```
+
+From source, for development:
+
+```bash
+git clone https://github.com/D-Gebauer/Kassiopeia.git
+cd Kassiopeia
+pip install -e ".[all,test]"
 ```
 
 | Extra | Installs | Needed for |
 |---|---|---|
 | `lognormal` | `glass`, `camb` | lognormal shells |
-| `loaders` | `h5py`, `pyyaml`, `astropy` | `forwardmodel.loaders` |
+| `loaders` | `h5py`, `pyyaml`, `astropy` | `kassiopeia.loaders` |
 | `rotation` | `ducc0` | faster alm rotations (healpy is the fallback) |
 | `baryons` | `tqdm`, `numba`, `joblib` | BaryonForge, see [Baryonification](#baryonification) |
 | `test` | `pytest`, `pytest-cov` | the tests |
@@ -42,11 +51,11 @@ The example notebooks also need matplotlib.
 ## Usage
 
 `counts`, the n(z) arrays, masks and noise inputs are your data.
-[`examples/`](examples/) has runnable scripts with synthetic inputs.
+[`examples/`](https://github.com/D-Gebauer/Kassiopeia/tree/main/examples) has runnable scripts with synthetic inputs.
 
 ```python
 import numpy as np
-import forwardmodel as fm
+import kassiopeia as fm
 
 cosmo = fm.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
 shells = fm.ShellStack.from_counts(counts, z_lower, z_upper)   # (n_shells, npix)
@@ -171,7 +180,7 @@ For linear IA (NLA) without source clustering, the shells can be transformed
 once and reused for many n(z), IA amplitudes and rotations:
 
 ```python
-from forwardmodel import harmonic, rotation
+from kassiopeia import harmonic, rotation
 
 alms = harmonic.shell_overdensity_alms(shells)            # (n_shells, n_alm)
 W_kappa, W_ia = harmonic.weak_lensing_weights(
@@ -190,7 +199,7 @@ SO(3). Alms are stored as `complex64` by default.
 
 ## Loaders
 
-`forwardmodel.loaders` reads specific data products into the objects above.
+`kassiopeia.loaders` reads specific data products into the objects above.
 The data are not included; all paths are passed explicitly.
 
 | Module | Reads |
@@ -206,7 +215,7 @@ The data are not included; all paths are passed explicitly.
 ### CosmoGrid
 
 ```python
-from forwardmodel.loaders import CosmoGridV1, CosmoGridV1_1
+from kassiopeia.loaders import CosmoGridV1, CosmoGridV1_1
 
 cosmo = CosmoGridV1.load_cosmology("<dir>/params.yml")
 shells = CosmoGridV1.load_shells("<dir>/compressed_shells.npz")
@@ -228,7 +237,7 @@ The v1.1 files do not contain the shell redshifts, so `metainfo=` (or
 `simNNNNN.tar.gz` and export sheet 1 of the release workbook as CSV.
 
 ```python
-from forwardmodel.loaders import GowerStreet
+from kassiopeia.loaders import GowerStreet
 
 cosmo = GowerStreet.load_cosmology("<gower>/sheet1.csv", 400)
 shells = GowerStreet.load_shells("<gower>/sim00400", z_max=3.0, nside=1024)
@@ -247,7 +256,7 @@ the run's parameter file and `shell_redshifts*.txt` are needed locally.
 
 ```python
 import hdfstream
-from forwardmodel.loaders import Flamingo
+from kassiopeia.loaders import Flamingo
 
 run = "FLAMINGO/L1_m9/L1_m9"
 cosmo = Flamingo.load_cosmology("flamingo_L1000N1800_hydro_fiducial.yml")
@@ -278,8 +287,8 @@ from `Flamingo.COSMOLOGIES`. The decaying-dark-matter runs are not supported.
 ## Baryonification
 
 ```python
-from forwardmodel.baryons import baryonify, HaloCatalog, DEFAULT_BARYON_PARAMS
-from forwardmodel.loaders import CosmoGridV1
+from kassiopeia.baryons import baryonify, HaloCatalog, DEFAULT_BARYON_PARAMS
+from kassiopeia.loaders import CosmoGridV1
 
 h = CosmoGridV1.load_halo_catalog("<path>/halos.npz")
 halos = HaloCatalog.from_cartesian(h["x"], h["y"], h["z"], h["Mvir"], cosmo)
@@ -293,7 +302,7 @@ The BaryonForge release on PyPI pins `pyccl==2.8.0` and `numpy<2`, which
 conflict with this package, so install it without its dependencies:
 
 ```bash
-pip install -e ".[baryons]"
+pip install "kassiopeia[baryons]"
 pip install --no-deps BaryonForge
 ```
 
@@ -344,4 +353,4 @@ when it is missing.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](https://github.com/D-Gebauer/Kassiopeia/blob/main/LICENSE).

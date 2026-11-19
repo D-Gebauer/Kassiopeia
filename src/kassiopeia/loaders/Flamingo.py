@@ -72,7 +72,7 @@ def _neutrino_masses(p):
 
 
 def cosmology_from_params(p, **overrides):
-    """Build a :class:`~forwardmodel.Cosmology` from the dict of :func:`load_params`.
+    """Build a :class:`~kassiopeia.Cosmology` from the dict of :func:`load_params`.
 
     Densities, ``h`` and the neutrino masses come from the parameter file (``Omega_cdm`` and
     ``Omega_b`` exclude the neutrinos, which are added on top). The file has no power-spectrum
@@ -82,7 +82,7 @@ def cosmology_from_params(p, **overrides):
     :class:`Cosmology`. The decaying-dark-matter runs are not supported.
     """
     if "Omega_dcdmdr_0" in p or "Gamma_dcdm" in p:
-        raise ValueError("decaying dark matter runs cannot be described by forwardmodel.Cosmology")
+        raise ValueError("decaying dark matter runs cannot be described by kassiopeia.Cosmology")
     masses = _neutrino_masses(p)
     kwargs: dict = dict(Omega_c=float(p["Omega_cdm"]), Omega_b=float(p["Omega_b"]), h=float(p["h"]))
     if len(masses) == 1:
@@ -112,7 +112,7 @@ def cosmology_from_params(p, **overrides):
 
 
 def load_cosmology(yml_path, **overrides):
-    """:class:`~forwardmodel.Cosmology` of a run from its SWIFT parameter file.
+    """:class:`~kassiopeia.Cosmology` of a run from its SWIFT parameter file.
 
     See :func:`load_params` and :func:`cosmology_from_params`.
     """

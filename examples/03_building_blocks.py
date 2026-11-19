@@ -6,8 +6,8 @@ Run:  python examples/03_building_blocks.py
 
 import numpy as np
 import healpy as hp
-import forwardmodel as fm
-from forwardmodel import projections as proj
+import kassiopeia as fm
+from kassiopeia import projections as proj
 
 rng = np.random.default_rng(7)
 nside = 64

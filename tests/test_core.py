@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 def test_cosmology_distance_monotonic(cosmo):

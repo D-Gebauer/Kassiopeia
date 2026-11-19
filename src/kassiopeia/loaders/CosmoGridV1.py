@@ -6,7 +6,7 @@ redshift bounds (``compressed_shells.npz``; ``baryonified_shells.npz`` holds the
 baryonified shells in the same layout). ``params.yml`` holds the cosmology.
 
 For CosmoGrid v1.1 (``baryonified_shells_v11.h5``) see
-:mod:`forwardmodel.loaders.CosmoGridV1_1`.
+:mod:`kassiopeia.loaders.CosmoGridV1_1`.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from ..shells import ShellStack
 
 def cosmology_from_params(p, n_massive_nu=3, check_omega_m=True, rtol_omega_m=1e-4,
                           **overrides):
-    """Build a :class:`~forwardmodel.Cosmology` from CosmoGrid parameters.
+    """Build a :class:`~kassiopeia.Cosmology` from CosmoGrid parameters.
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ def cosmology_from_params(p, n_massive_nu=3, check_omega_m=True, rtol_omega_m=1e
 
 
 def load_cosmology(params_path, n_massive_nu=3, check_omega_m=True, **overrides):
-    """Build a :class:`~forwardmodel.Cosmology` from a CosmoGrid ``params.yml``.
+    """Build a :class:`~kassiopeia.Cosmology` from a CosmoGrid ``params.yml``.
 
     Parameters
     ----------
@@ -118,7 +118,7 @@ def load_halo_catalog(path):
     """Load the CosmoGrid halo lightcone catalogue (structured array).
 
     Returns the raw structured array (fields ``x, y, z, Mvir, shell_id, ...``);
-    used by :mod:`forwardmodel.baryons`.
+    used by :mod:`kassiopeia.baryons`.
     """
     data = np.load(Path(path), allow_pickle=True)
     return data["halos"]

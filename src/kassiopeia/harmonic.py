@@ -8,7 +8,7 @@ Kaiser-Squires are all linear, the shells can be transformed **once**:
 
     delta_lm[i]  = map2alm(delta_i)                                   (n_shell transforms, once)
     kappa_lm[b]  = sum_i W[i, b] delta_lm[i]                          (a matrix product per n(z) variant)
-    kappa_lm[b] <- rotate(kappa_lm[b])  or rotate delta_lm once        (exact, see forwardmodel.rotation)
+    kappa_lm[b] <- rotate(kappa_lm[b])  or rotate delta_lm once        (exact, see kassiopeia.rotation)
     gamma_b      = KS(kappa_lm[b])                                    (one spin-2 synthesis per bin)
 
 so photo-z shifts per realisation, per-bin IA amplitudes and random rotations cost a matrix product, a
@@ -82,7 +82,7 @@ def combine_alms(shell_alms, weights):
 
 def kappa_alm_to_shear(kappa_alm, nside, lmax=None):
     """Kaiser-Squires shear ``(gamma1, gamma2)`` from convergence ``a_lm`` (``l < 2`` zeroed), as
-    :func:`forwardmodel.kaiser_squires.kappa_to_gamma` does after its ``map2alm``."""
+    :func:`kassiopeia.kaiser_squires.kappa_to_gamma` does after its ``map2alm``."""
     kappa_alm = np.asarray(kappa_alm)
     if lmax is None:
         lmax = hp.Alm.getlmax(kappa_alm.shape[-1])

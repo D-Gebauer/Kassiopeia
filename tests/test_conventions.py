@@ -2,9 +2,9 @@
 import numpy as np
 import pytest
 
-import forwardmodel as fm
-from forwardmodel.ia import C1_RHOCRIT, C1_RHOCRIT_COSMOSIS
-from forwardmodel.loaders import CosmoGridV1 as cg, CosmoGridV1_1
+import kassiopeia as fm
+from kassiopeia.ia import C1_RHOCRIT, C1_RHOCRIT_COSMOSIS
+from kassiopeia.loaders import CosmoGridV1 as cg, CosmoGridV1_1
 
 CG_FID = {"As": 3.0589e-9, "H0": 67.36, "O_cdm": 0.209277442262, "O_nu": 0.0014225577379999993,
           "Ob": 0.0493, "Om": 0.26, "m_nu": 0.02, "ns": 0.9649, "s8": 0.84, "w0": -1.0, "wa": 0.0}
@@ -70,7 +70,7 @@ def test_linear_ia_fast_path_equals_tidal_path():
 
 def test_rotation_reproducible_and_matrix_matches_alm_rotation():
     import healpy as hp
-    from forwardmodel import rotation as rot
+    from kassiopeia import rotation as rot
     a = rot.random_euler_angles(np.random.SeedSequence(5, spawn_key=(1, 2)))
     assert a == rot.random_euler_angles(np.random.SeedSequence(5, spawn_key=(1, 2)))
     lmax, nside = 16, 16
@@ -85,10 +85,10 @@ def test_rotation_reproducible_and_matrix_matches_alm_rotation():
     assert np.allclose(m_rot, expect, atol=1e-6)
 
 
-@pytest.mark.skipif(not __import__("forwardmodel.rotation", fromlist=["x"]).have_ducc0(), reason="no ducc0")
+@pytest.mark.skipif(not __import__("kassiopeia.rotation", fromlist=["x"]).have_ducc0(), reason="no ducc0")
 def test_rotation_ducc0_equals_healpy():
     import healpy as hp
-    from forwardmodel import rotation as rot
+    from kassiopeia import rotation as rot
     lmax = 64
     alm = hp.synalm(np.ones(lmax + 1), lmax=lmax).astype(np.complex128)
     a = rot.random_euler_angles(3)
@@ -98,7 +98,7 @@ def test_rotation_ducc0_equals_healpy():
 
 def test_harmonic_projection_equals_forward_model():
     import healpy as hp
-    from forwardmodel import harmonic as H
+    from kassiopeia import harmonic as H
     rng = np.random.default_rng(2)
     nside = 32
     z_edges = np.linspace(0.0, 1.5, 11)
@@ -120,7 +120,7 @@ def test_harmonic_projection_equals_forward_model():
 
 
 def test_effective_redshift_stays_in_shell_for_negative_nz_tails():
-    from forwardmodel import projections as proj
+    from kassiopeia import projections as proj
     z = np.linspace(0, 3, 301)
     nz = np.exp(-((z - 0.8) / 0.1) ** 2)
     nz[200:] = -1e-12                                   # tiny negative tail (spline undershoot)

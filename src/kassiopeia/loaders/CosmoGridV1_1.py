@@ -6,7 +6,7 @@ pixels (``diff_shell_inds`` / ``diff_shell_vals``) and the cosmology
 (``sim_params``). The shell redshift bounds are in the separate v1.1 metainfo file.
 
 For CosmoGridV1 (``.npz`` shells, ``params.yml``) see
-:mod:`forwardmodel.loaders.CosmoGridV1`.
+:mod:`kassiopeia.loaders.CosmoGridV1`.
 """
 
 from __future__ import annotations

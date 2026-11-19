@@ -7,7 +7,7 @@ Run:  python examples/02_full_3x2pt_pipeline.py
 
 import numpy as np
 import healpy as hp
-import forwardmodel as fm
+import kassiopeia as fm
 
 rng = np.random.default_rng(42)
 nside = 64

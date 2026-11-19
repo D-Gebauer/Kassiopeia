@@ -10,7 +10,7 @@ own map mean, ``delta_i = counts_i / <counts_i> - 1``.
 That single convention is why this package needs no box size or particle count:
 those only ever entered the original UFalcon prefactors to undo the count
 normalization, and the per-shell map mean does that directly. The projection
-weights (see :mod:`forwardmodel.projections`) are therefore purely geometric —
+weights (see :mod:`kassiopeia.projections`) are therefore purely geometric —
 they depend only on the shell redshift bounds and the cosmology.
 
 The map-mean default is robust (self-calibrating, needs no box metadata, works
@@ -58,7 +58,7 @@ class ShellStack:
     n_particles : int, optional
         Total particle number in the box (e.g. ``N_grid**3``). Required for
         ``normalization="box"``.
-    cosmo : forwardmodel.Cosmology, optional
+    cosmo : kassiopeia.Cosmology, optional
         Needed by ``normalization="box"`` to convert redshift bounds into
         comoving shell volumes.
     """
@@ -139,7 +139,7 @@ class ShellStack:
 
         Parameters
         ----------
-        cosmo : forwardmodel.Cosmology
+        cosmo : kassiopeia.Cosmology
         z_edges : array_like
             Redshift bin edges; ``len(z_edges) - 1`` shells are produced.
         nside : int
@@ -306,7 +306,7 @@ class ShellStack:
 
         Parameters
         ----------
-        cosmo : forwardmodel.Cosmology
+        cosmo : kassiopeia.Cosmology
         z_edges : array_like
             Redshift bin edges; ``len - 1`` shells are produced.
         rng : np.random.Generator, optional
@@ -367,7 +367,7 @@ class ShellStack:
 
         Parameters
         ----------
-        cosmo : forwardmodel.Cosmology
+        cosmo : kassiopeia.Cosmology
         z_max : float, optional
             Upper edge to cover. Defaults to the current :attr:`z_max` (fills
             only interior and low-z gaps). Set higher to also build the high-z
@@ -378,7 +378,7 @@ class ShellStack:
             Target thickness of generated lognormal bins. Defaults to the
             median thickness of the existing shells.
         rng, lmax, shift
-            Forwarded to :func:`~forwardmodel.lognormal.lognormal_shells`.
+            Forwarded to :func:`~kassiopeia.lognormal.lognormal_shells`.
         min_gap : float
             Ignore gaps narrower than this (avoids spurious thin shells from
             floating-point edges).

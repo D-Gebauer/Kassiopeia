@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 def test_project_weak_lensing_only(cosmo, count_shells, source_bins):
@@ -257,7 +257,7 @@ def test_isw_signal_correlates_positively_with_low_z_density(cosmo, count_shells
 def test_isw_weights_scale_with_omega_m(count_shells):
     # The kernel a_i ~ Omega_m * (1 - f), and 1-f also grows with smaller
     # Omega_m; net effect is that lower Omega_m universes have larger ISW.
-    from forwardmodel.projections import isw_weights
+    from kassiopeia.projections import isw_weights
     c_low = fm.Cosmology(Omega_m=0.2, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
     c_hi = fm.Cosmology(Omega_m=0.4, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
     w_low = isw_weights(c_low, count_shells.z_lower, count_shells.z_upper)

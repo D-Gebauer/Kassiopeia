@@ -1,6 +1,6 @@
 """Loader for KiDS lensfit shape catalogues (KiDS-1000 / KiDS-Legacy).
 
-Returns per-bin catalogues ready for :class:`forwardmodel.noise.KiDSShapeNoise`.
+Returns per-bin catalogues ready for :class:`kassiopeia.noise.KiDSShapeNoise`.
 KiDS ellipticities are already calibrated by lensfit (self-calibration); the
 residual multiplicative bias ``m`` per bin enters the observation as
 ``shear_calibration``, not here.

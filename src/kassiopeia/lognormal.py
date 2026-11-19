@@ -7,7 +7,7 @@ clustering n(z) reach far beyond that. This module fills the gap with
 angular power spectra, so the shells carry the correct cross-shell two-point
 statistics the integrated CMB-lensing kernel needs.
 
-Requires the optional ``glass`` dependency (``pip install forwardmodel[lognormal]``).
+Requires the optional ``glass`` dependency (``pip install kassiopeia[lognormal]``).
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ def lognormal_shells(cosmo, z_edges, nside, rng=None, lmax=None, shift=None):
 
     Parameters
     ----------
-    cosmo : forwardmodel.Cosmology
+    cosmo : kassiopeia.Cosmology
     z_edges : array_like
         Redshift bin edges; ``len(z_edges) - 1`` shells are produced.
     nside : int

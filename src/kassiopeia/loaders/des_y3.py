@@ -8,7 +8,7 @@ The HDF5 layouts assumed here match the products the pipeline was built on:
   optionally ``R``, ``weight``).
 * ``y3_lens_maglim.h5`` — groups ``bin_<i>`` with ``ra, dec`` (and ``weight``).
 * The official ``Y3_mastercat_*.h5`` for :func:`load_metacal_catalog` (raw
-  metacal shapes + responses for :class:`~forwardmodel.noise.DESShapeNoise`).
+  metacal shapes + responses for :class:`~kassiopeia.noise.DESShapeNoise`).
 
 Pass ``n_source_bins`` / ``n_lens_bins`` to match your file.
 """
@@ -51,7 +51,7 @@ def load_source_catalog(path, n_bins=4):
     -------
     dict
         Maps bin index -> ``(e1, e2, R, w)`` float32 arrays, ready to pass to
-        :class:`~forwardmodel.noise.EmpiricalShapeNoise`. ``R`` and ``w`` default
+        :class:`~kassiopeia.noise.EmpiricalShapeNoise`. ``R`` and ``w`` default
         to ones when absent.
     """
     import h5py
@@ -83,7 +83,7 @@ def load_metacal_catalog(path, n_bins=4, selection_response=True,
     are the rows ``index/select_bin{i+1}`` of ``catalog/metacal/unsheared``.
 
     Ellipticities are returned **raw** (not divided by the response); the
-    response is applied by :class:`~forwardmodel.noise.DESShapeNoise`.
+    response is applied by :class:`~kassiopeia.noise.DESShapeNoise`.
 
     Parameters
     ----------

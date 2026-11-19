@@ -5,10 +5,10 @@ feedback, following Schneider+19. Requires BaryonForge, installed without its
 version pins: ``pip install --no-deps BaryonForge`` plus the ``baryons`` extra
 (its remaining dependencies).
 
->>> from forwardmodel.baryons import baryonify, DEFAULT_BARYON_PARAMS
+>>> from kassiopeia.baryons import baryonify, DEFAULT_BARYON_PARAMS
 >>> baryonified = baryonify(shells, halos, cosmo)
 
-See :func:`forwardmodel.baryons.baryonforge.baryonify`.
+See :func:`kassiopeia.baryons.baryonforge.baryonify`.
 """
 
 from .baryonforge import baryonify, DEFAULT_BARYON_PARAMS, HaloCatalog

@@ -4,12 +4,12 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 def test_concentration_accepts_mdef():
     """BaryonForge 1.0 passes ``mdef=`` to the pyccl concentrations (``mass_def`` since pyccl 3)."""
-    import forwardmodel.baryons  # noqa: F401  (installs the shims)
+    import kassiopeia.baryons  # noqa: F401  (installs the shims)
     from pyccl.halos import concentration as conc
 
     assert conc.ConcentrationDiemer15(mdef="200c").mass_def.name == "200c"
@@ -19,7 +19,7 @@ def test_concentration_accepts_mdef():
 
 def test_baryonify_conserves_mass(cosmo):
     pytest.importorskip("BaryonForge")
-    from forwardmodel.baryons import baryonify, HaloCatalog
+    from kassiopeia.baryons import baryonify, HaloCatalog
 
     rng = np.random.default_rng(1)
     nside, n_halo = 32, 20

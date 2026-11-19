@@ -2,7 +2,7 @@
 
 The baseline ACT DR6 lensing release provides a reconstruction noise curve, a
 multipole filter, and a high-resolution mask. These helpers read those files
-and shape them for :class:`~forwardmodel.observation.CMBLensingObservation`.
+and shape them for :class:`~kassiopeia.observation.CMBLensingObservation`.
 """
 
 from __future__ import annotations

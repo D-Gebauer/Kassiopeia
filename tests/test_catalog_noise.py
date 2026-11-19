@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 NSIDE = 8
@@ -154,7 +154,7 @@ def test_des_mastercat_loader(tmp_path, rng):
         for k, v in sel.items():
             f[f"index/{k}"] = v
 
-    from forwardmodel.loaders import des_y3
+    from kassiopeia.loaders import des_y3
     cats, R_S = des_y3.load_metacal_catalog(path, n_bins=2, chunk_rows=777)
     for i in range(2):
         idx = sel[f"select_bin{i + 1}"]

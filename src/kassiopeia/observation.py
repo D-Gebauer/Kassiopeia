@@ -11,8 +11,8 @@ model, and any calibration:
 * :class:`ISWObservation` — multipole filter + temperature noise + mask for the
   late-time ISW ``Delta T / T`` map.
 
-These compose the low-level pieces in :mod:`forwardmodel.noise` and
-:mod:`forwardmodel.kaiser_squires`; use those directly for finer control.
+These compose the low-level pieces in :mod:`kassiopeia.noise` and
+:mod:`kassiopeia.kaiser_squires`; use those directly for finer control.
 """
 
 from __future__ import annotations
@@ -93,9 +93,9 @@ class WeakLensingObservation:
     nbar : float or array_like
         Mean source galaxies per pixel, scalar or per bin.
     shape_noise : ShapeNoise
-        Noise model. Defaults to :class:`~forwardmodel.noise.NoShapeNoise`.
-        For survey mocks use :class:`~forwardmodel.noise.DESShapeNoise` or
-        :class:`~forwardmodel.noise.KiDSShapeNoise` (real catalogue, rotated
+        Noise model. Defaults to :class:`~kassiopeia.noise.NoShapeNoise`.
+        For survey mocks use :class:`~kassiopeia.noise.DESShapeNoise` or
+        :class:`~kassiopeia.noise.KiDSShapeNoise` (real catalogue, rotated
         galaxies at their true positions; ``nbar`` and the source overdensity
         are then not used for the noise).
     shear_calibration : float or array_like, optional
@@ -140,7 +140,7 @@ class WeakLensingObservation:
 
         Parameters
         ----------
-        wl_maps : forwardmodel.probes.WeakLensingMaps
+        wl_maps : kassiopeia.probes.WeakLensingMaps
         rng : np.random.Generator
 
         Returns

@@ -8,7 +8,7 @@ Two field-level models are provided:
 
 Each coefficient may be a scalar (shared across tomographic bins) or an array
 (one value per bin). The model objects are plugged into
-:class:`forwardmodel.probes.GalaxyClustering`; the standalone functions below
+:class:`kassiopeia.probes.GalaxyClustering`; the standalone functions below
 expose the same maths for ad-hoc use.
 """
 

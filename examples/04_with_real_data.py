@@ -3,12 +3,12 @@
 This mirrors the original pipeline the package was generalised from. Edit the
 paths below to point at your data, then run. Requires the loaders extra:
 
-    pip install forwardmodel[loaders]
+    pip install kassiopeia[loaders]
 """
 
 import numpy as np
-import forwardmodel as fm
-from forwardmodel.loaders import CosmoGridV1, des_y3, act_dr6
+import kassiopeia as fm
+from kassiopeia.loaders import CosmoGridV1, des_y3, act_dr6
 
 DATA = "/path/to/data"  # <-- edit me
 

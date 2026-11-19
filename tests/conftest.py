@@ -1,10 +1,10 @@
-"""Shared fixtures for the forwardmodel test suite."""
+"""Shared fixtures for the kassiopeia test suite."""
 
 import numpy as np
 import healpy as hp
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 @pytest.fixture(scope="session")

@@ -2,7 +2,7 @@
 
 Shape noise comes in several interchangeable flavours, all sharing the
 :class:`ShapeNoise` interface so they can be swapped freely on a
-:class:`forwardmodel.observation.WeakLensingObservation`:
+:class:`kassiopeia.observation.WeakLensingObservation`:
 
 * :class:`DESShapeNoise` / :class:`KiDSShapeNoise` (recommended for survey
   mocks) — take the real catalogue, keep every galaxy at its position, rotate
@@ -351,7 +351,7 @@ class DESShapeNoise(CatalogShapeNoise):
     catalogs : mapping or sequence
         Per bin: columns ``ra, dec, e1, e2, w`` and either ``R11`` and
         ``R22`` or a per-galaxy scalar ``R``.
-        :func:`forwardmodel.loaders.des_y3.load_metacal_catalog` returns this.
+        :func:`kassiopeia.loaders.des_y3.load_metacal_catalog` returns this.
     selection_response : float or array_like
         ``R_S`` (scalar or per bin), added to ``<R_gamma>``. Default 0.
     per_pixel_response : bool
@@ -409,7 +409,7 @@ class KiDSShapeNoise(CatalogShapeNoise):
     ----------
     catalogs : mapping or sequence
         Per bin: columns ``ra, dec, e1, e2, w`` (``w`` = lensfit ``weight``).
-        :func:`forwardmodel.loaders.kids.load_shape_catalog` returns this.
+        :func:`kassiopeia.loaders.kids.load_shape_catalog` returns this.
     columns, chunk_size
         See :class:`CatalogShapeNoise`.
     """

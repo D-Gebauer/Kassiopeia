@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import forwardmodel as fm
+import kassiopeia as fm
 
 
 def _smooth_map(nside, rng, lmax=20):
@@ -101,7 +101,7 @@ def test_tatt_field_exact_operators(cosmo):
 
 
 def test_separable_coeffs_match_cmb_weights(cosmo):
-    from forwardmodel import projections as proj
+    from kassiopeia import projections as proj
     z_lo = np.array([0.0, 0.3, 0.6, 0.9])
     z_hi = np.array([0.3, 0.6, 0.9, 1.2])
     alpha, beta = proj.lensing_separable_coeffs(cosmo, z_lo, z_hi)

@@ -9,7 +9,7 @@ A *probe* describes one observable to forward-model from the shells:
 * :class:`CMBLensing` — CMB convergence to a single source plane.
 * :class:`ISW` — late-time integrated Sachs-Wolfe temperature anisotropy.
 
-:meth:`forwardmodel.ForwardModel.project` consumes probes and returns the
+:meth:`kassiopeia.ForwardModel.project` consumes probes and returns the
 matching ``*Maps`` containers below.
 """
 
@@ -120,7 +120,7 @@ class ISW:
         Theta_lm = sum_i a_i / [l(l+1)] * delta_lm^(i)
 
     with the per-shell scalar coefficient supplied by
-    :func:`forwardmodel.projections.isw_weights`. Matter domination gives
+    :func:`kassiopeia.projections.isw_weights`. Matter domination gives
     ``f = 1`` exactly and the kernel vanishes there — only shells where dark
     energy makes the potentials decay contribute.
 

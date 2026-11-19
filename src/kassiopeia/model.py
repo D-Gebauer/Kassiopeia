@@ -10,7 +10,7 @@ All requested probes are accumulated in one redshift-ordered pass over the
 shells (ordering lets source clustering build cumulative foreground convergence
 for its non-isotropic n(z); every other term is an order-independent sum).
 Linear-in-delta contributions use the geometric weights from
-:mod:`forwardmodel.projections` (including lens magnification,
+:mod:`kassiopeia.projections` (including lens magnification,
 ``(5s-2) kappa_lens``, when requested);
 the nonlinear quadratic-bias and TATT terms compute the tidal field per shell
 and use n(z) shell-overlap weights, capped at ``z_max_tidal`` (the lognormal
@@ -40,8 +40,8 @@ class ForwardModel:
 
     Parameters
     ----------
-    cosmo : forwardmodel.Cosmology
-    shells : forwardmodel.ShellStack
+    cosmo : kassiopeia.Cosmology
+    shells : kassiopeia.ShellStack
     lmax : int, optional
         Maximum multipole for tidal/Kaiser-Squires transforms. Defaults to
         ``3 * nside - 1``.
@@ -69,7 +69,7 @@ class ForwardModel:
 
         Parameters
         ----------
-        cosmo : forwardmodel.Cosmology
+        cosmo : kassiopeia.Cosmology
         nside : int
             HEALPix resolution of the generated shells.
         z_max : float, optional

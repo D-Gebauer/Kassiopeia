@@ -1,4 +1,4 @@
-"""forwardmodel — forward-model multi-probe cosmological maps from density shells.
+"""kassiopeia — forward-model multi-probe cosmological maps from density shells.
 
 Generate realistic weak-lensing, galaxy-clustering, and CMB-lensing maps from
 N-body (or lognormal) HEALPix density shells, with tidal tensors, TATT
@@ -6,7 +6,7 @@ intrinsic alignments, quadratic galaxy bias, and source clustering.
 
 Quick start
 -----------
->>> import numpy as np, forwardmodel as fm
+>>> import numpy as np, kassiopeia as fm
 >>> cosmo = fm.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
 >>> shells = fm.ShellStack.from_counts(counts, z_lower, z_upper)
 >>> wl = fm.WeakLensing(nz=source_bins, ia=fm.TATT(a1=0.5))
@@ -23,15 +23,17 @@ shells from the cosmology alone and run the same pipeline (needs ``glass``):
 
 The high-level objects above cover the common case; every building block
 (:func:`compute_tidal`, :func:`kappa_to_gamma`, the weight builders in
-:mod:`forwardmodel.projections`, the noise models in :mod:`forwardmodel.noise`,
+:mod:`kassiopeia.projections`, the noise models in :mod:`kassiopeia.noise`,
 ...) is also importable directly for custom pipelines.
 
-Optional features live behind extras: ``forwardmodel[lognormal]`` (GLASS shell
-extension), ``forwardmodel[loaders]`` (CosmoGrid/DES Y3/KiDS/ACT DR6 readers),
-``forwardmodel[rotation]`` (ducc0 for fast rotations), and
-``forwardmodel[baryons]`` (dependencies of BaryonForge baryonification; see
-:mod:`forwardmodel.baryons`).
+Optional features live behind extras: ``kassiopeia[lognormal]`` (GLASS shell
+extension), ``kassiopeia[loaders]`` (CosmoGrid/DES Y3/KiDS/ACT DR6 readers),
+``kassiopeia[rotation]`` (ducc0 for fast rotations), and
+``kassiopeia[baryons]`` (dependencies of BaryonForge baryonification; see
+:mod:`kassiopeia.baryons`).
 """
+
+from importlib.metadata import PackageNotFoundError, version as _version
 
 from .cosmology import Cosmology
 from .shells import ShellStack
@@ -60,7 +62,10 @@ from .observation import (
     ISWObservation, ObservedWeakLensing, compose_ellipticity,
 )
 
-__version__ = "0.1.0"
+try:
+    __version__ = _version("kassiopeia")
+except PackageNotFoundError:   # source tree that was never installed
+    __version__ = "unknown"
 
 __all__ = [
     # core

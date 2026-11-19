@@ -3,8 +3,8 @@ import healpy as hp
 import numpy as np
 import pytest
 
-import forwardmodel as fm
-from forwardmodel.loaders import Flamingo as fl, GowerStreet as gs
+import kassiopeia as fm
+from kassiopeia.loaders import Flamingo as fl, GowerStreet as gs
 
 NSIDE = 16
 Z_VALUES_HEADER = ("# Step,z_far,z_near,delta_z,cmd_far(Mpc/h),cmd_near(Mpc/h),delta_cmd(Mpc/h),"

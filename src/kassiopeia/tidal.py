@@ -7,7 +7,7 @@ ell-dependent factor::
 
     s_lm = delta_lm * sqrt((l-1)(l+2) / (l(l+1)))
 
-The sign convention matches :func:`forwardmodel.kaiser_squires.kappa_to_gamma`
+The sign convention matches :func:`kassiopeia.kaiser_squires.kappa_to_gamma`
 so that NLA intrinsic alignments correctly *oppose* gravitational shear.
 """
 

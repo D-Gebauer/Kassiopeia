@@ -1,7 +1,7 @@
 """BaryonForge baryonification of dark-matter-only density shells.
 
 Wraps BaryonForge's ``BaryonifyShell`` runner so it accepts a generic
-:class:`~forwardmodel.ShellStack` and a halo light-cone catalogue. Halos are
+:class:`~kassiopeia.ShellStack` and a halo light-cone catalogue. Halos are
 matched to shells by redshift, so this works with any shell binning (not just
 CosmoGrid's shell ids).
 
@@ -108,7 +108,7 @@ class HaloCatalog:
             divided by ``h`` to reach physical Mpc.
         mass : ndarray
             Halo mass; divided by ``h`` if ``mass_is_per_h``.
-        cosmo : forwardmodel.Cosmology
+        cosmo : kassiopeia.Cosmology
         """
         h = cosmo.h
         x = np.asarray(x, float); y = np.asarray(y, float); z = np.asarray(z, float)
@@ -166,11 +166,11 @@ def baryonify(shells, halos, cosmo, params=None, verbose=True):
 
     Parameters
     ----------
-    shells : forwardmodel.ShellStack
+    shells : kassiopeia.ShellStack
         Count shells (dark-matter-only).
     halos : HaloCatalog
         Halo light cone.
-    cosmo : forwardmodel.Cosmology
+    cosmo : kassiopeia.Cosmology
     params : dict, optional
         Baryonification parameters. Defaults to :data:`DEFAULT_BARYON_PARAMS`.
     verbose : bool
