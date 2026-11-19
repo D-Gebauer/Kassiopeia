@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import kassiopeia as fm
+import kassiopeia as kp
 
 
 NSIDE = 8
@@ -41,7 +41,7 @@ def test_kids_single_galaxy_keeps_modulus(rng):
     # One galaxy per pixel: put them on distinct pixels.
     pix = rng.choice(hp.nside2npix(NSIDE), 50, replace=False)
     cat["ra"], cat["dec"] = hp.pix2ang(NSIDE, pix, lonlat=True)
-    g1, g2 = fm.KiDSShapeNoise([cat]).realisation(0, NSIDE, rng)
+    g1, g2 = kp.KiDSShapeNoise([cat]).realisation(0, NSIDE, rng)
     np.testing.assert_allclose(np.hypot(g1[pix], g2[pix]),
                                np.hypot(cat["e1"], cat["e2"]), rtol=1e-6)
     assert np.count_nonzero(g1) == 50
@@ -49,7 +49,7 @@ def test_kids_single_galaxy_keeps_modulus(rng):
 
 def test_kids_variance_and_zero_mean(rng):
     cat = _catalog(rng, coherent=0.2)       # coherent signal must be erased
-    sn = fm.KiDSShapeNoise({0: cat}, chunk_size=700)   # exercise chunking
+    sn = kp.KiDSShapeNoise({0: cat}, chunk_size=700)   # exercise chunking
     draws = np.array([sn.realisation(0, NSIDE, rng) for _ in range(400)])
     var_th = _expected_var(cat, NSIDE)
     occ = var_th > 0
@@ -64,8 +64,8 @@ def test_kids_variance_and_zero_mean(rng):
 
 def test_des_divides_by_bin_mean_response(rng):
     cat = _catalog(rng, R=0.7)
-    des = fm.DESShapeNoise([cat], selection_response=0.01)
-    kids = fm.KiDSShapeNoise([cat])
+    des = kp.DESShapeNoise([cat], selection_response=0.01)
+    kids = kp.KiDSShapeNoise([cat])
     R = np.sum(cat["w"] * (cat["R11"] + cat["R22"]) / 2) / cat["w"].sum() + 0.01
     assert des.mean_response(0) == pytest.approx(R)
     g_des = des.realisation(0, NSIDE, np.random.default_rng(7))
@@ -75,9 +75,9 @@ def test_des_divides_by_bin_mean_response(rng):
 
 def test_des_per_pixel_response_and_scalar_R(rng):
     cat = _catalog(rng, R=0.7)
-    pp = fm.DESShapeNoise([cat], per_pixel_response=True)
+    pp = kp.DESShapeNoise([cat], per_pixel_response=True)
     g_pp = np.array(pp.realisation(0, NSIDE, np.random.default_rng(3)))
-    num = np.array(fm.KiDSShapeNoise([cat]).realisation(0, NSIDE,
+    num = np.array(kp.KiDSShapeNoise([cat]).realisation(0, NSIDE,
                                                         np.random.default_rng(3)))
     pix = hp.ang2pix(NSIDE, cat["ra"], cat["dec"], lonlat=True)
     npix = hp.nside2npix(NSIDE)
@@ -89,11 +89,11 @@ def test_des_per_pixel_response_and_scalar_R(rng):
     # A scalar 'R' column is accepted instead of R11/R22, and columns can be renamed.
     alt = {"RA": cat["ra"], "DEC": cat["dec"], "e_1": cat["e1"], "e_2": cat["e2"],
            "weight": cat["w"], "R": np.full(len(cat["w"]), 0.5)}
-    sn = fm.DESShapeNoise([alt], columns={"ra": "RA", "dec": "DEC", "e1": "e_1",
+    sn = kp.DESShapeNoise([alt], columns={"ra": "RA", "dec": "DEC", "e1": "e_1",
                                           "e2": "e_2", "w": "weight"})
     assert sn.mean_response(0) == pytest.approx(0.5)
     with pytest.raises(KeyError):
-        fm.DESShapeNoise([{k: cat[k] for k in ("ra", "dec", "e1", "e2", "w")}]
+        kp.DESShapeNoise([{k: cat[k] for k in ("ra", "dec", "e1", "e2", "w")}]
                          ).realisation(0, NSIDE, rng)
 
 
@@ -102,13 +102,13 @@ def test_structured_array_catalog(rng):
     arr = np.zeros(len(cat["w"]), dtype=[(k, ">f4") for k in cat])
     for k in cat:
         arr[k] = cat[k]
-    g1, g2 = fm.KiDSShapeNoise([arr]).realisation(0, NSIDE, rng)
+    g1, g2 = kp.KiDSShapeNoise([arr]).realisation(0, NSIDE, rng)
     assert np.all(np.isfinite(g1)) and np.count_nonzero(g1) > 0
 
 
 def test_generate_masks_and_counts(rng):
     cat = _catalog(rng)
-    sn = fm.KiDSShapeNoise([cat])
+    sn = kp.KiDSShapeNoise([cat])
     mask = np.ones(hp.nside2npix(NSIDE))
     mask[: len(mask) // 2] = 0
     n_src, g1, g2 = sn.generate(0, 99.0, None, mask, rng)
@@ -120,12 +120,12 @@ def test_generate_masks_and_counts(rng):
                                np.bincount(pix, cat["w"], minlength=len(mask)))
 
 
-@pytest.mark.parametrize("cls", [fm.DESShapeNoise, fm.KiDSShapeNoise])
+@pytest.mark.parametrize("cls", [kp.DESShapeNoise, kp.KiDSShapeNoise])
 def test_catalog_noise_in_observation(cosmo, count_shells, source_bins, rng, nside, cls):
-    wl = fm.WeakLensing(nz=source_bins)
-    maps = fm.ForwardModel(cosmo, count_shells).project(weak_lensing=wl)
+    wl = kp.WeakLensing(nz=source_bins)
+    maps = kp.ForwardModel(cosmo, count_shells).project(weak_lensing=wl)
     cats = [_catalog(rng, n=3000, nside=nside, R=0.7) for _ in range(2)]
-    obs = fm.WeakLensingObservation(np.ones(count_shells.npix), shape_noise=cls(cats)
+    obs = kp.WeakLensingObservation(np.ones(count_shells.npix), shape_noise=cls(cats)
                                     ).observe(maps.weak_lensing, rng)
     assert obs.gamma1.shape == (2, count_shells.npix)
     assert np.all(np.isfinite(obs.gamma1))
@@ -169,5 +169,5 @@ def test_des_mastercat_loader(tmp_path, rng):
                         + (m("2p", "e_2") - m("2m", "e_2"))) / 0.02
         assert R_S[i] == pytest.approx(expect, rel=1e-10)
     # Plugs straight into DESShapeNoise.
-    g1, _ = fm.DESShapeNoise(cats, selection_response=R_S).realisation(0, 8, rng)
+    g1, _ = kp.DESShapeNoise(cats, selection_response=R_S).realisation(0, 8, rng)
     assert np.all(np.isfinite(g1))

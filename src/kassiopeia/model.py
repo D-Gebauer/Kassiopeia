@@ -3,8 +3,8 @@
 This is the high-level entry point. Construct it with a cosmology and a shell
 stack, then call :meth:`ForwardModel.project` with any combination of probes::
 
-    fm = ForwardModel(cosmo, shells)
-    maps = fm.project(weak_lensing=wl, galaxy_clustering=gc, cmb_lensing=cmb)
+    model = ForwardModel(cosmo, shells)
+    maps = model.project(weak_lensing=wl, galaxy_clustering=gc, cmb_lensing=cmb)
 
 All requested probes are accumulated in one redshift-ordered pass over the
 shells (ordering lets source clustering build cumulative foreground convergence

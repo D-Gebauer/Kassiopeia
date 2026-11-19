@@ -6,19 +6,19 @@ intrinsic alignments, quadratic galaxy bias, and source clustering.
 
 Quick start
 -----------
->>> import numpy as np, kassiopeia as fm
->>> cosmo = fm.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
->>> shells = fm.ShellStack.from_counts(counts, z_lower, z_upper)
->>> wl = fm.WeakLensing(nz=source_bins, ia=fm.TATT(a1=0.5))
->>> maps = fm.ForwardModel(cosmo, shells).project(weak_lensing=wl)
+>>> import numpy as np, kassiopeia as kp
+>>> cosmo = kp.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
+>>> shells = kp.ShellStack.from_counts(counts, z_lower, z_upper)
+>>> wl = kp.WeakLensing(nz=source_bins, ia=kp.TATT(a1=0.5))
+>>> maps = kp.ForwardModel(cosmo, shells).project(weak_lensing=wl)
 
 No N-body lightcone for this cosmology? Generate cross-correlated lognormal
 shells from the cosmology alone and run the same pipeline (needs ``glass``):
 
->>> model = fm.ForwardModel.from_lognormal(cosmo, nside=512, z_max=3.0, dz=0.1)
+>>> model = kp.ForwardModel.from_lognormal(cosmo, nside=512, z_max=3.0, dz=0.1)
 >>> maps = model.project(weak_lensing=wl)
->>> obs = fm.WeakLensingObservation(mask, nbar=0.5,
-...           shape_noise=fm.EmpiricalShapeNoise(catalog)).observe(
+>>> obs = kp.WeakLensingObservation(mask, nbar=0.5,
+...           shape_noise=kp.EmpiricalShapeNoise(catalog)).observe(
 ...           maps.weak_lensing, np.random.default_rng(0))
 
 The high-level objects above cover the common case; every building block

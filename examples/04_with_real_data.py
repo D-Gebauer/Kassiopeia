@@ -7,7 +7,7 @@ paths below to point at your data, then run. Requires the loaders extra:
 """
 
 import numpy as np
-import kassiopeia as fm
+import kassiopeia as kp
 from kassiopeia.loaders import CosmoGridV1, des_y3, act_dr6
 
 DATA = "/path/to/data"  # <-- edit me
@@ -43,29 +43,29 @@ source_bins = [nd.shifted(sys["dz_src"][i]) for i, nd in enumerate(nz["source"])
 lens_bins = [nd.shifted(sys["dz_lens"][i]) for i, nd in enumerate(nz["lens"])]
 
 # --- Probes ---
-wl = fm.WeakLensing(
+wl = kp.WeakLensing(
     nz=source_bins,
-    ia=fm.TATT(a1=sys["a1"], a2=sys["a2"], eta1=sys["eta1"],
+    ia=kp.TATT(a1=sys["a1"], a2=sys["a2"], eta1=sys["eta1"],
                eta2=sys["eta2"], b_ta=sys["b_ta"]),
     source_clustering_bias=sys["b_src"],
 )
-gc = fm.GalaxyClustering(
+gc = kp.GalaxyClustering(
     nz=lens_bins,
-    bias=fm.QuadraticBias(b1=sys["b1"], b2=sys["b2"], bs=sys["bs"]),
+    bias=kp.QuadraticBias(b1=sys["b1"], b2=sys["b2"], bs=sys["bs"]),
 )
-cmb = fm.CMBLensing(z_source=1090.0)
+cmb = kp.CMBLensing(z_source=1090.0)
 
-maps = fm.ForwardModel(cosmo, shells).project(
+maps = kp.ForwardModel(cosmo, shells).project(
     weak_lensing=wl, galaxy_clustering=gc, cmb_lensing=cmb, verbose=True)
 
 # --- Observe ---
-wl_obs = fm.WeakLensingObservation(
-    mask, nbar=nbar_source, shape_noise=fm.EmpiricalShapeNoise(source_catalog),
+wl_obs = kp.WeakLensingObservation(
+    mask, nbar=nbar_source, shape_noise=kp.EmpiricalShapeNoise(source_catalog),
     shear_calibration=sys["m"],
 ).observe(maps.weak_lensing, rng)
-gc_counts = fm.GalaxyClusteringObservation(mask, nbar=nbar_lens).observe(
+gc_counts = kp.GalaxyClusteringObservation(mask, nbar=nbar_lens).observe(
     maps.galaxy_clustering, rng)
-cmb_obs = fm.CMBLensingObservation(
+cmb_obs = kp.CMBLensingObservation(
     mask=mask_act, noise=act["noise"], filter=act["filter"],
 ).observe(maps.cmb_lensing, rng)
 

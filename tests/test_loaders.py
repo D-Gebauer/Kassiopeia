@@ -3,7 +3,7 @@ import healpy as hp
 import numpy as np
 import pytest
 
-import kassiopeia as fm
+import kassiopeia as kp
 from kassiopeia.loaders import Flamingo as fl, GowerStreet as gs
 
 NSIDE = 16
@@ -69,7 +69,7 @@ def test_gower_street_shells(sim_dir):
 
 def test_gower_street_box_normalization(sim_dir):
     assert gs.load_control(sim_dir)["dBoxSize"] == 1250
-    cosmo = fm.Cosmology(Omega_m=0.3, sigma8=0.8)
+    cosmo = kp.Cosmology(Omega_m=0.3, sigma8=0.8)
     shells = gs.load_shells(sim_dir, normalization="box", cosmo=cosmo)
     assert shells.normalization == "box"
     assert shells.box_size == 1250.0 and shells.n_particles == 1080**3

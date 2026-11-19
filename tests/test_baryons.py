@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 import pytest
 
-import kassiopeia as fm
+import kassiopeia as kp
 
 
 def test_concentration_accepts_mdef():
@@ -25,7 +25,7 @@ def test_baryonify_conserves_mass(cosmo):
     nside, n_halo = 32, 20
     z_edges = np.array([0.2, 0.3, 0.4])
     counts = rng.poisson(200, (2, hp.nside2npix(nside))).astype(np.float64)
-    shells = fm.ShellStack.from_counts(counts, z_edges[:-1], z_edges[1:])
+    shells = kp.ShellStack.from_counts(counts, z_edges[:-1], z_edges[1:])
     halos = HaloCatalog(ra=rng.uniform(0, 360, n_halo),
                         dec=np.degrees(np.arcsin(rng.uniform(-1, 1, n_halo))),
                         M=10 ** rng.uniform(14, 15, n_halo), z=rng.uniform(0.21, 0.39, n_halo))

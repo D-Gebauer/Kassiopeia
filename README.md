@@ -55,46 +55,46 @@ The example notebooks also need matplotlib.
 
 ```python
 import numpy as np
-import kassiopeia as fm
+import kassiopeia as kp
 
-cosmo = fm.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
-shells = fm.ShellStack.from_counts(counts, z_lower, z_upper)   # (n_shells, npix)
+cosmo = kp.Cosmology(Omega_m=0.3, Omega_b=0.05, h=0.7, sigma8=0.8, n_s=0.96)
+shells = kp.ShellStack.from_counts(counts, z_lower, z_upper)   # (n_shells, npix)
 
-source_bins = fm.make_bins(z, [nz0, nz1, nz2, nz3])
-wl  = fm.WeakLensing(nz=source_bins,
-                     ia=fm.NLA(a1=0.7),
+source_bins = kp.make_bins(z, [nz0, nz1, nz2, nz3])
+wl  = kp.WeakLensing(nz=source_bins,
+                     ia=kp.NLA(a1=0.7),
                      source_clustering_bias=1.0)
-gc  = fm.GalaxyClustering(nz=lens_bins,
-                          bias=fm.QuadraticBias(b1=[1.4, 1.6, 1.8], b2=0.2, bs=-0.1),
+gc  = kp.GalaxyClustering(nz=lens_bins,
+                          bias=kp.QuadraticBias(b1=[1.4, 1.6, 1.8], b2=0.2, bs=-0.1),
                           magnification=[0.4, 1.0, 1.8])       # number-count slope s
-cmb = fm.CMBLensing(z_source=1090.0)
-isw = fm.ISW()
+cmb = kp.CMBLensing(z_source=1090.0)
+isw = kp.ISW()
 
-maps = fm.ForwardModel(cosmo, shells).project(
+maps = kp.ForwardModel(cosmo, shells).project(
     weak_lensing=wl, galaxy_clustering=gc, cmb_lensing=cmb, isw=isw)
 
 rng = np.random.default_rng(0)
-wl_obs = fm.WeakLensingObservation(
+wl_obs = kp.WeakLensingObservation(
     mask, nbar=1.5,
-    shape_noise=fm.DESShapeNoise(metacal, selection_response=R_S),
+    shape_noise=kp.DESShapeNoise(metacal, selection_response=R_S),
     shear_calibration=[-0.006, -0.020, -0.024, -0.037],
     reduced_shear=True,
     additive_shear=(c1, c2),
     psf_leakage=(alpha, e1_psf, e2_psf),
 ).observe(maps.weak_lensing, rng)
 
-gc_counts = fm.GalaxyClusteringObservation(mask, nbar=nbar_lens).observe(
+gc_counts = kp.GalaxyClusteringObservation(mask, nbar=nbar_lens).observe(
     maps.galaxy_clustering, rng)
-cmb_obs = fm.CMBLensingObservation(
+cmb_obs = kp.CMBLensingObservation(
     mask=mask_act, noise=(ell, N_L), filter=(ell, F_L)).observe(maps.cmb_lensing, rng)
-isw_obs = fm.ISWObservation(
+isw_obs = kp.ISWObservation(
     mask=mask_cmb, noise=(ell, C_TT_plus_N_L)).observe(maps.isw, rng)
 ```
 
 Without N-body shells, the model can be built from lognormal shells alone:
 
 ```python
-model = fm.ForwardModel.from_lognormal(cosmo, nside=512, z_max=3.0, dz=0.1)
+model = kp.ForwardModel.from_lognormal(cosmo, nside=512, z_max=3.0, dz=0.1)
 ```
 
 `project()` skips the tidal terms (quadratic bias, IA) for shells above
@@ -184,7 +184,7 @@ from kassiopeia import harmonic, rotation
 
 alms = harmonic.shell_overdensity_alms(shells)            # (n_shells, n_alm)
 W_kappa, W_ia = harmonic.weak_lensing_weights(
-    cosmo, source_bins, shells.z_lower, shells.z_upper, ia=fm.NLA(a1=0.7))
+    cosmo, source_bins, shells.z_lower, shells.z_upper, ia=kp.NLA(a1=0.7))
 kappa_lm = harmonic.combine_alms(alms, W_kappa)           # (n_bins, n_alm)
 ia_lm    = harmonic.combine_alms(alms, W_ia)
 

@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-import kassiopeia as fm
+import kassiopeia as kp
 from kassiopeia.ia import C1_RHOCRIT, C1_RHOCRIT_COSMOSIS
 from kassiopeia.loaders import CosmoGridV1 as cg, CosmoGridV1_1
 
@@ -13,12 +13,12 @@ CG_FID = {"As": 3.0589e-9, "H0": 67.36, "O_cdm": 0.209277442262, "O_nu": 0.00142
 def test_c1_rhocrit_cosmosis_value_and_scaling():
     # CSL la_model compute_c1_baseline(): 5e-14 h^-2 Msun^-1 Mpc^3 * rho_crit,0
     assert C1_RHOCRIT_COSMOSIS == pytest.approx(0.0138731, rel=1e-5)
-    cosmo = fm.Cosmology(Omega_m=0.3, sigma8=0.8)
-    a = fm.NLA(a1=1.0).amplitudes(cosmo, 0.5)[0]
-    b = fm.NLA(a1=1.0, c1_rhocrit=C1_RHOCRIT_COSMOSIS).amplitudes(cosmo, 0.5)[0]
+    cosmo = kp.Cosmology(Omega_m=0.3, sigma8=0.8)
+    a = kp.NLA(a1=1.0).amplitudes(cosmo, 0.5)[0]
+    b = kp.NLA(a1=1.0, c1_rhocrit=C1_RHOCRIT_COSMOSIS).amplitudes(cosmo, 0.5)[0]
     assert b / a == pytest.approx(C1_RHOCRIT_COSMOSIS / C1_RHOCRIT)
-    t = fm.TATT(a1=1.0, a2=1.0, c1_rhocrit=2 * C1_RHOCRIT).amplitudes(cosmo, 0.5)
-    t0 = fm.TATT(a1=1.0, a2=1.0).amplitudes(cosmo, 0.5)
+    t = kp.TATT(a1=1.0, a2=1.0, c1_rhocrit=2 * C1_RHOCRIT).amplitudes(cosmo, 0.5)
+    t0 = kp.TATT(a1=1.0, a2=1.0).amplitudes(cosmo, 0.5)
     assert t[0] / t0[0] == pytest.approx(2.0) and t[1] / t0[1] == pytest.approx(2.0)
 
 
@@ -36,11 +36,11 @@ def test_nz_from_spline():
     z = np.linspace(0.0, 2.0, 41)
     nz = np.exp(-((z - 0.8) / 0.3) ** 2)
     nz[0] = 0.0
-    s = fm.NumberDensity.from_spline(z, nz)
+    s = kp.NumberDensity.from_spline(z, nz)
     assert np.trapezoid(s.nz, s.z) == pytest.approx(1.0)
-    assert s.mean_z() == pytest.approx(fm.NumberDensity(z, nz).mean_z(), abs=1e-3)
+    assert s.mean_z() == pytest.approx(kp.NumberDensity(z, nz).mean_z(), abs=1e-3)
     # passes through the (normalised) sample points
-    lin = fm.NumberDensity(z, nz)
+    lin = kp.NumberDensity(z, nz)
     assert np.allclose(s(z[5:-5]), lin.nz[5:-5], rtol=1e-3)
 
 
@@ -50,12 +50,12 @@ def test_linear_ia_fast_path_equals_tidal_path():
     nside = 32
     z_edges = np.linspace(0.0, 1.5, 11)
     delta = rng.normal(0, 0.3, (10, hp.nside2npix(nside)))
-    shells = fm.ShellStack.from_overdensity(delta, z_edges[:-1], z_edges[1:])
-    cosmo = fm.Cosmology(Omega_m=0.3, sigma8=0.8, transfer_function="eisenstein_hu")
+    shells = kp.ShellStack.from_overdensity(delta, z_edges[:-1], z_edges[1:])
+    cosmo = kp.Cosmology(Omega_m=0.3, sigma8=0.8, transfer_function="eisenstein_hu")
     z = np.linspace(0, 2, 81)
-    bins = fm.make_bins(z, [np.exp(-((z - m) / 0.2) ** 2) for m in (0.5, 0.9)])
-    wl = fm.WeakLensing(nz=bins, ia=fm.NLA(a1=1.3, eta1=0.5))
-    model = fm.ForwardModel(cosmo, shells)
+    bins = kp.make_bins(z, [np.exp(-((z - m) / 0.2) ** 2) for m in (0.5, 0.9)])
+    wl = kp.WeakLensing(nz=bins, ia=kp.NLA(a1=1.3, eta1=0.5))
+    model = kp.ForwardModel(cosmo, shells)
     fast = model.project(weak_lensing=wl).weak_lensing
     slow = model.project(weak_lensing=wl, linear_ia_fast=False).weak_lensing
     assert fast.ia_kappa is not None and slow.ia_kappa is None
@@ -103,12 +103,12 @@ def test_harmonic_projection_equals_forward_model():
     nside = 32
     z_edges = np.linspace(0.0, 1.5, 11)
     delta = rng.normal(0, 0.3, (10, hp.nside2npix(nside)))
-    shells = fm.ShellStack.from_overdensity(delta, z_edges[:-1], z_edges[1:])
-    cosmo = fm.Cosmology(Omega_m=0.3, sigma8=0.8, transfer_function="eisenstein_hu")
+    shells = kp.ShellStack.from_overdensity(delta, z_edges[:-1], z_edges[1:])
+    cosmo = kp.Cosmology(Omega_m=0.3, sigma8=0.8, transfer_function="eisenstein_hu")
     z = np.linspace(0, 2, 81)
-    bins = fm.make_bins(z, [np.exp(-((z - m) / 0.2) ** 2) for m in (0.5, 0.9)])
-    ia = fm.NLA(a1=1.0)
-    ref = fm.ForwardModel(cosmo, shells).project(weak_lensing=fm.WeakLensing(nz=bins, ia=ia)).weak_lensing
+    bins = kp.make_bins(z, [np.exp(-((z - m) / 0.2) ** 2) for m in (0.5, 0.9)])
+    ia = kp.NLA(a1=1.0)
+    ref = kp.ForwardModel(cosmo, shells).project(weak_lensing=kp.WeakLensing(nz=bins, ia=ia)).weak_lensing
     alms = H.shell_overdensity_alms(shells, dtype=np.complex128)
     wk, wi = H.weak_lensing_weights(cosmo, bins, shells.z_lower, shells.z_upper, ia=ia)
     kap, kia = H.combine_alms(alms, wk), H.combine_alms(alms, wi)
@@ -124,7 +124,7 @@ def test_effective_redshift_stays_in_shell_for_negative_nz_tails():
     z = np.linspace(0, 3, 301)
     nz = np.exp(-((z - 0.8) / 0.1) ** 2)
     nz[200:] = -1e-12                                   # tiny negative tail (spline undershoot)
-    nd = fm.NumberDensity(z, nz, normalize=False)
+    nd = kp.NumberDensity(z, nz, normalize=False)
     zl, zu = np.linspace(0, 2.9, 30), np.linspace(0.1, 3.0, 30)
     ze = proj.effective_redshift([nd], zl, zu)[:, 0]
     assert np.all(ze >= zl) and np.all(ze <= zu)
